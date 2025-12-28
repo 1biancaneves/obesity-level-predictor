@@ -3,3 +3,5 @@ pandas
 scikit-learn==1.5.1
 joblib
 numpy<2.0.0
+matplotlib
+seaborn
