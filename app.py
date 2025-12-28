@@ -1,124 +1,97 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "64d262b8-8624-4b6f-a28b-2bb402280247",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "import streamlit as st\n",
-    "import pandas as pd\n",
-    "import joblib\n",
-    "\n",
-    "# --- IMPORTANTE: A FUNÇÃO PERSONALIZADA ---\n",
-    "# Ela precisa ser redefinida aqui EXATAMENTE igual ao treinamento\n",
-    "# para o modelo conseguir carregar sem erros.\n",
-    "def arredondar_valores(X_in):\n",
-    "    X_out = X_in.copy()\n",
-    "    cols_to_round = ['FCVC', 'NCP', 'CH2O', 'FAF', 'TUE']\n",
-    "    valid_cols = [c for c in cols_to_round if c in X_out.columns]\n",
-    "    X_out[valid_cols] = X_out[valid_cols].round().astype(int)\n",
-    "    return X_out\n",
-    "\n",
-    "# --- CARREGAR O MODELO ---\n",
-    "pipeline = joblib.load('modelo_obesidade.pkl')\n",
-    "\n",
-    "# --- TÍTULO E DESCRIÇÃO ---\n",
-    "st.title(\"Previsão de Nível de Obesidade 🩺\")\n",
-    "st.write(\"Preencha os dados abaixo para que o modelo de IA faça a análise.\")\n",
-    "\n",
-    "# --- FORMULÁRIO DE ENTRADA ---\n",
-    "with st.form(\"formulario_obesidade\"):\n",
-    "    col1, col2 = st.columns(2)\n",
-    "\n",
-    "    with col1:\n",
-    "        age = st.number_input(\"Idade\", min_value=10, max_value=100, value=25)\n",
-    "        height = st.number_input(\"Altura (m)\", min_value=1.0, max_value=2.5, value=1.70)\n",
-    "        weight = st.number_input(\"Peso (kg)\", min_value=30.0, max_value=200.0, value=70.0)\n",
-    "        gender = st.selectbox(\"Gênero\", [\"Male\", \"Female\"])\n",
-    "        family_history = st.selectbox(\"Histórico Familiar de Obesidade?\", [\"yes\", \"no\"])\n",
-    "        \n",
-    "    with col2:\n",
-    "        favc = st.selectbox(\"Consome alimentos calóricos com frequência?\", [\"yes\", \"no\"])\n",
-    "        fcvc = st.slider(\"Consumo de vegetais (FCVC)\", 1.0, 3.0, 2.0)\n",
-    "        ncp = st.slider(\"Refeições principais por dia (NCP)\", 1.0, 4.0, 3.0)\n",
-    "        caec = st.selectbox(\"Come entre refeições?\", [\"no\", \"Sometimes\", \"Frequently\", \"Always\"])\n",
-    "        smoke = st.selectbox(\"Fuma?\", [\"yes\", \"no\"])\n",
-    "\n",
-    "    col3, col4 = st.columns(2)\n",
-    "    with col3:\n",
-    "        ch2o = st.slider(\"Água por dia (litros)\", 1.0, 3.0, 2.0)\n",
-    "        scc = st.selectbox(\"Monitora calorias ingeridas?\", [\"yes\", \"no\"])\n",
-    "    \n",
-    "    with col4:\n",
-    "        faf = st.slider(\"Atividade Física (frequência)\", 0.0, 3.0, 1.0)\n",
-    "        tue = st.slider(\"Tempo em dispositivos (celular/TV)\", 0.0, 2.0, 1.0)\n",
-    "        calc = st.selectbox(\"Consumo de Álcool\", [\"no\", \"Sometimes\", \"Frequently\", \"Always\"])\n",
-    "        mtrans = st.selectbox(\"Meio de Transporte\", [\"Public_Transportation\", \"Walking\", \"Automobile\", \"Motorbike\", \"Bike\"])\n",
-    "\n",
-    "    submit_button = st.form_submit_button(\"Calcular Nível de Obesidade\")\n",
-    "\n",
-    "# --- LÓGICA DA PREVISÃO ---\n",
-    "if submit_button:\n",
-    "    # Criar DataFrame com os dados\n",
-    "    dados_entrada = pd.DataFrame({\n",
-    "        'Age': [age],\n",
-    "        'Gender': [gender],\n",
-    "        'Height': [height],\n",
-    "        'Weight': [weight],\n",
-    "        'CALC': [calc],\n",
-    "        'FAVC': [favc],\n",
-    "        'FCVC': [fcvc],\n",
-    "        'NCP': [ncp],\n",
-    "        'SCC': [scc],\n",
-    "        'SMOKE': [smoke],\n",
-    "        'CH2O': [ch2o],\n",
-    "        'family_history': [family_history],\n",
-    "        'FAF': [faf],\n",
-    "        'TUE': [tue],\n",
-    "        'CAEC': [caec],\n",
-    "        'MTRANS': [mtrans]\n",
-    "    })\n",
-    "\n",
-    "    # Fazer a predição\n",
-    "    resultado = pipeline.predict(dados_entrada)[0]\n",
-    "    \n",
-    "    # Exibir resultado com estilo\n",
-    "    st.markdown(\"---\")\n",
-    "    st.subheader(f\"Resultado da Análise:\")\n",
-    "    \n",
-    "    cor = \"blue\"\n",
-    "    if \"Obesity\" in resultado:\n",
-    "        cor = \"red\"\n",
-    "    elif \"Overweight\" in resultado:\n",
-    "        cor = \"orange\"\n",
-    "    else:\n",
-    "        cor = \"green\"\n",
-    "        \n",
-    "    st.markdown(f\"<h2 style='color: {cor};'>{resultado}</h2>\", unsafe_allow_html=True)"
-   ]
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3 (ipykernel)",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.11.9"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
+import streamlit as st
+import pandas as pd
+import joblib
+
+# --- IMPORTANTE: A FUNÇÃO PERSONALIZADA ---
+# Precisa estar aqui para o joblib carregar o pipeline corretamente
+def arredondar_valores(X_in):
+    X_out = X_in.copy()
+    cols_to_round = ['FCVC', 'NCP', 'CH2O', 'FAF', 'TUE']
+    valid_cols = [c for c in cols_to_round if c in X_out.columns]
+    X_out[valid_cols] = X_out[valid_cols].round().astype(int)
+    return X_out
+
+# --- CARREGAR O MODELO ---
+# Certifique-se de que o arquivo .pkl está na mesma pasta
+try:
+    pipeline = joblib.load('modelo_obesidade.pkl')
+except FileNotFoundError:
+    st.error("Erro: O arquivo 'modelo_obesidade.pkl' não foi encontrado. Verifique se ele está no repositório.")
+    st.stop()
+
+# --- TÍTULO E DESCRIÇÃO ---
+st.title("Previsão de Nível de Obesidade 🩺")
+st.write("Preencha os dados abaixo para que o modelo de IA faça a análise.")
+
+# --- FORMULÁRIO DE ENTRADA ---
+with st.form("formulario_obesidade"):
+    col1, col2 = st.columns(2)
+
+    with col1:
+        age = st.number_input("Idade", min_value=10, max_value=100, value=25)
+        height = st.number_input("Altura (m)", min_value=1.0, max_value=2.5, value=1.70)
+        weight = st.number_input("Peso (kg)", min_value=30.0, max_value=200.0, value=70.0)
+        gender = st.selectbox("Gênero", ["Male", "Female"])
+        family_history = st.selectbox("Histórico Familiar de Obesidade?", ["yes", "no"])
+        
+    with col2:
+        favc = st.selectbox("Consome alimentos calóricos com frequência?", ["yes", "no"])
+        fcvc = st.slider("Consumo de vegetais (FCVC)", 1.0, 3.0, 2.0)
+        ncp = st.slider("Refeições principais por dia (NCP)", 1.0, 4.0, 3.0)
+        caec = st.selectbox("Come entre refeições?", ["no", "Sometimes", "Frequently", "Always"])
+        smoke = st.selectbox("Fuma?", ["yes", "no"])
+
+    col3, col4 = st.columns(2)
+    with col3:
+        ch2o = st.slider("Água por dia (litros)", 1.0, 3.0, 2.0)
+        scc = st.selectbox("Monitora calorias ingeridas?", ["yes", "no"])
+    
+    with col4:
+        faf = st.slider("Atividade Física (frequência)", 0.0, 3.0, 1.0)
+        tue = st.slider("Tempo em dispositivos (celular/TV)", 0.0, 2.0, 1.0)
+        calc = st.selectbox("Consumo de Álcool", ["no", "Sometimes", "Frequently", "Always"])
+        mtrans = st.selectbox("Meio de Transporte", ["Public_Transportation", "Walking", "Automobile", "Motorbike", "Bike"])
+
+    submit_button = st.form_submit_button("Calcular Nível de Obesidade")
+
+# --- LÓGICA DA PREVISÃO ---
+if submit_button:
+    # Criar DataFrame com os dados
+    dados_entrada = pd.DataFrame({
+        'Age': [age],
+        'Gender': [gender],
+        'Height': [height],
+        'Weight': [weight],
+        'CALC': [calc],
+        'FAVC': [favc],
+        'FCVC': [fcvc],
+        'NCP': [ncp],
+        'SCC': [scc],
+        'SMOKE': [smoke],
+        'CH2O': [ch2o],
+        'family_history': [family_history],
+        'FAF': [faf],
+        'TUE': [tue],
+        'CAEC': [caec],
+        'MTRANS': [mtrans]
+    })
+
+    # Fazer a predição
+    try:
+        resultado = pipeline.predict(dados_entrada)[0]
+        
+        # Exibir resultado com estilo
+        st.markdown("---")
+        st.subheader(f"Resultado da Análise:")
+        
+        cor = "blue"
+        if "Obesity" in resultado:
+            cor = "red"
+        elif "Overweight" in resultado:
+            cor = "orange"
+        else:
+            cor = "green"
+            
+        st.markdown(f"<h2 style='color: {cor};'>{resultado}</h2>", unsafe_allow_html=True)
+    except Exception as e:
+        st.error(f"Erro ao realizar a predição: {e}")
