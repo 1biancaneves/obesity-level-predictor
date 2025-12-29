@@ -3,8 +3,9 @@ import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 
-# --- 1. CONFIGURAÇÃO E ESTILO (TEMA AZUL) ---
+# --- 1. CONFIGURAÇÃO E ESTILO (AZUL) ---
 st.set_page_config(
     page_title="FIAP - Obesity Analytics",
     page_icon="💙",
@@ -12,13 +13,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# CSS PROFISSIONAL (AZUL)
+# CSS PROFISSIONAL
 st.markdown("""
     <style>
-    /* Fundo Geral Levemente Azulado/Cinza */
     .stApp {background-color: #f4f6f9;}
-    
-    /* Cards brancos com sombra suave */
     .css-card {
         background-color: white;
         padding: 20px;
@@ -26,40 +24,37 @@ st.markdown("""
         box-shadow: 0px 4px 6px rgba(0,0,0,0.05);
         margin-bottom: 20px;
     }
-    
-    /* Títulos dos Cards em AZUL */
     .card-title {
         color: #2c3e50;
         font-size: 18px;
         font-weight: 700;
         margin-bottom: 15px;
-        border-bottom: 3px solid #3498db; /* AZUL PRINCIPAL */
+        border-bottom: 3px solid #3498db;
         padding-bottom: 5px;
     }
-    
-    /* Campos de Input mais limpos */
-    div[data-baseweb="select"] > div, 
-    div[data-baseweb="input"] > div {
-        background-color: #ffffff !important;
-        border-color: #dfe6e9 !important;
-    }
-    
-    /* Métricas Grandes em AZUL */
     div[data-testid="stMetricValue"] {
         font-size: 28px;
-        color: #3498db; /* AZUL DESTAQUE */
+        color: #3498db;
         font-weight: bold;
     }
-    
-    /* Sidebar Branca */
-    section[data-testid="stSidebar"] {
-        background-color: #ffffff;
-        border-right: 1px solid #e1e4e8;
+    /* Estilo do Rodapé */
+    .footer-text {
+        text-align: center;
+        color: #7f8c8d;
+        font-size: 14px;
+        margin-top: 10px;
+    }
+    .footer-names {
+        text-align: center;
+        color: #2c3e50;
+        font-size: 12px;
+        font-weight: bold;
+        margin-top: 5px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. PREPARAÇÃO (TRADUÇÃO E MODELO) ---
+# --- 2. PREPARAÇÃO ---
 traducao_resultado = {
     'Insufficient_Weight': 'Abaixo do Peso',
     'Normal_Weight': 'Peso Normal',
@@ -100,13 +95,48 @@ except:
 
 df = carregar_dados()
 
-# --- 3. MENU LATERAL (LOGO) ---
-# Usei o link público transparente. Se você subiu o arquivo local, troque pelo nome dele (ex: "logo_fiap.png")
-st.sidebar.image("https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png", use_container_width=True)
-st.sidebar.markdown("<br>", unsafe_allow_html=True)
+# --- FUNÇÃO DO RODAPÉ (LOGOS + CRÉDITOS) ---
+def render_footer():
+    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Grid para os 3 logos
+    c1, c2, c3, c4, c5 = st.columns([1, 2, 2, 2, 1]) # Colunas vazias nas pontas para centralizar
+    
+    # URL de backup caso não tenha as imagens locais
+    backup_logo = "https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png"
+    
+    with c2:
+        if os.path.exists("logo1.png"): st.image("logo1.png", use_container_width=True)
+        else: st.image(backup_logo, use_container_width=True, caption="Logo 1")
+        
+    with c3:
+        if os.path.exists("logo2.png"): st.image("logo2.png", use_container_width=True)
+        else: st.image(backup_logo, use_container_width=True, caption="Logo 2")
+        
+    with c4:
+        if os.path.exists("logo3.png"): st.image("logo3.png", use_container_width=True)
+        else: st.image(backup_logo, use_container_width=True, caption="Logo 3")
 
-st.sidebar.markdown("### Navegação")
-menu = st.sidebar.radio("", ["Visão Executiva", "Insights Estratégicos", "Simulador de Risco"])
+    # Textos
+    st.markdown("""
+        <div class="footer-text">
+            © 2025 - Tech Challenge Fase 4
+        </div>
+        <div class="footer-names">
+            Created by Bianca Neves, Erica Silva, Diogo Oliveira e Gabrielle Barbosa
+        </div>
+    """, unsafe_allow_html=True)
+
+# --- 3. MENU LATERAL (LOGO 3 EM DESTAQUE) ---
+if os.path.exists("logo3.png"):
+    st.sidebar.image("logo3.png", use_container_width=True)
+else:
+    # Backup se não tiver o arquivo logo3.png
+    st.sidebar.image("https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png", use_container_width=True)
+
+st.sidebar.markdown("---")
+menu = st.sidebar.radio("Navegação", ["Visão Executiva", "Insights Estratégicos", "Simulador de Risco"])
 
 if df is not None:
     st.sidebar.markdown("---")
@@ -128,16 +158,12 @@ if df is not None:
 else:
     df_filtrado = pd.DataFrame()
 
-st.sidebar.markdown("---")
-st.sidebar.caption("© 2025 - Tech Challenge Fase 4")
-
-# --- 4. VISÃO EXECUTIVA (DASHBOARD) ---
+# --- 4. VISÃO EXECUTIVA ---
 if menu == "Visão Executiva":
     st.title("Monitoramento de Saúde Populacional")
     st.markdown("Visão estratégica para tomada de decisão clínica e preventiva.")
 
     if not df_filtrado.empty:
-        # KPIs
         col1, col2, col3, col4 = st.columns(4)
         total_p = len(df_filtrado)
         obesos = df_filtrado['Obesity'].str.contains('Obesity').sum()
@@ -153,7 +179,6 @@ if menu == "Visão Executiva":
 
         st.markdown("---")
 
-        # Gráficos Linha 1
         c1, c2 = st.columns([2, 1])
         with c1:
             st.markdown('<div class="card-title">📉 Estratificação de Risco</div>', unsafe_allow_html=True)
@@ -161,28 +186,22 @@ if menu == "Visão Executiva":
             ordem = ['Abaixo do Peso', 'Peso Normal', 'Sobrepeso Nível I', 'Sobrepeso Nível II', 
                      'Obesidade Grau I', 'Obesidade Grau II', 'Obesidade Mórbida']
             contagem = df_filtrado['Obesity_PT'].value_counts().reindex(ordem).fillna(0)
-            
-            # Cores Semânticas (Verde -> Amarelo -> Vermelho)
             colors = ['#2ecc71', '#2ecc71', '#f1c40f', '#f39c12', '#e67e22', '#d35400', '#c0392b']
             sns.barplot(x=contagem.values, y=contagem.index, palette=colors, ax=ax_bar)
             sns.despine(left=True, bottom=True)
             st.pyplot(fig_bar)
             
-            with st.expander("ℹ️ Interpretação do Gráfico"):
-                st.write("""
-                Este gráfico mostra o funil de saúde da população filtrada.
-                **Insight:** A migração de pacientes das faixas amarelas (Sobrepeso) para as vermelhas (Obesidade) representa o maior custo de longo prazo para a operadora de saúde.
-                """)
+            with st.expander("ℹ️ Interpretação"):
+                st.write("A migração de pacientes das faixas amarelas para as vermelhas representa o maior risco.")
 
         with c2:
             st.markdown('<div class="card-title">🧬 Fator Genético</div>', unsafe_allow_html=True)
             fam_counts = df_filtrado['family_history'].value_counts()
             fig_pie, ax_pie = plt.subplots()
-            # Azul e Cinza
             ax_pie.pie(fam_counts, labels=fam_counts.index, autopct='%1.1f%%', startangle=90, colors=['#3498db', '#bdc3c7'], wedgeprops=dict(width=0.4))
             st.pyplot(fig_pie)
             with st.expander("ℹ️ Detalhes"):
-                st.write("A predominância de histórico familiar (Yes) sugere que programas de prevenção devem incluir triagem genética ou familiar.")
+                st.write("Predominância massiva de histórico familiar nos casos analisados.")
 
         st.markdown("### 🚀 Oportunidades de Intervenção")
         c3, c4 = st.columns(2)
@@ -195,25 +214,23 @@ if menu == "Visão Executiva":
             sns.heatmap(ct_norm, cmap="RdYlGn_r", annot=True, fmt=".1f", cbar=False, ax=ax_heat)
             plt.ylabel("")
             st.pyplot(fig_heat)
-            with st.expander("ℹ️ Insight de Negócio"):
-                st.write("O uso de Automóveis correlaciona-se fortemente com Obesidade Grau II e III. Incentivar o transporte ativo (caminhada/bike) tem alto potencial preventivo.")
 
         with c4:
-            st.markdown('<div class="card-title">💧 Consumo de Água (Litros)</div>', unsafe_allow_html=True)
+            st.markdown('<div class="card-title">💧 Consumo de Água</div>', unsafe_allow_html=True)
             fig_box, ax_box = plt.subplots(figsize=(8, 5))
             sns.boxplot(x='CH2O', y='Obesity_PT', data=df_filtrado, palette="Blues", order=ordem, ax=ax_box)
             plt.ylabel("")
             st.pyplot(fig_box)
-            with st.expander("ℹ️ Insight de Negócio"):
-                st.write("Baixo consumo de água (< 1.5L) é uma constante nos grupos de alto risco. Campanhas de hidratação são intervenções de baixo custo e alto impacto.")
 
     else:
-        st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
+        st.warning("⚠️ Nenhum dado disponível.")
+    
+    render_footer()
 
-# --- 5. INSIGHTS ESTRATÉGICOS (AZUL) ---
+# --- 5. INSIGHTS ESTRATÉGICOS ---
 elif menu == "Insights Estratégicos":
     st.title("Relatório de Inteligência Clínica")
-    st.markdown("Consolidação de descobertas e recomendações para a diretoria.")
+    st.markdown("Consolidação de descobertas e recomendações.")
     st.markdown("---")
 
     col_txt1, col_txt2 = st.columns(2)
@@ -221,47 +238,32 @@ elif menu == "Insights Estratégicos":
     with col_txt1:
         st.info("### 📌 Principais Descobertas")
         st.markdown("""
-        **1. O Peso da Genética**
-        Nossa análise demonstra que o **histórico familiar** é o fator determinante mais forte. Mais de **85%** dos pacientes com Obesidade Tipo II e III possuem familiares com a mesma condição.
-        
-        **2. A Armadilha do Transporte**
-        Identificamos uma correlação direta entre o uso de **automóveis** e o aumento do IMC. Usuários de transporte público apresentam índices menores de obesidade mórbida.
-        
-        **3. O Efeito da Hidratação**
-        Pacientes que consomem menos de **1.5L de água por dia** tendem a se concentrar nas faixas de obesidade severa.
+        **1. O Peso da Genética:** Histórico familiar é o fator determinante mais forte (>85% dos casos graves).
+        **2. Mobilidade:** Uso de automóveis correlaciona-se com obesidade mórbida.
+        **3. Hidratação:** Baixo consumo de água é crítico em pacientes obesos.
         """)
 
     with col_txt2:
-        st.success("### 🚀 Plano de Ação Sugerido")
+        st.success("### 🚀 Plano de Ação")
         st.markdown("""
-        **A. Protocolo de Triagem Genética**
-        Implementar anamnese focada em histórico familiar na recepção **ou no consultório de triagem**.
-        
-        **B. Programa 'Hospital em Movimento'**
-        Criar incentivos para o deslocamento ativo.
-        * **Ideias:** Voucher de desconto em farmácias, abono de horas por meta de passos ou pontuação em programa de saúde.
-        
-        **C. Campanha de Hidratação**
-        Meta: Elevar o consumo médio para **2.0L/dia** através de apps de lembrete e bebedouros inteligentes.
+        **A. Triagem Genética:** Focar anamnese em histórico familiar.
+        **B. Hospital em Movimento:** Incentivos (pontos/descontos) para transporte ativo.
+        **C. Campanha Hidratação:** Meta de 2.0L/dia.
         """)
 
     st.markdown("---")
-    st.markdown("### 🧬 Performance Técnica do Modelo")
-    
+    st.markdown("### 🧬 Performance do Modelo")
     c_tec1, c_tec2 = st.columns(2)
     with c_tec1:
-        st.metric("Acurácia Real (Teste)", "93.62%")
-        st.metric("Gap (Overfitting)", "5.8%")
-    
+        st.metric("Acurácia Real", "93.62%")
     with c_tec2:
-        st.write("""
-        Utilizamos um algoritmo **Random Forest Classifier** com otimização de hiperparâmetros. O modelo demonstrou excelente capacidade de generalização (baixo gap entre treino e teste) e **100% de precisão** na identificação de casos críticos (Obesidade Mórbida).
-        """)
+        st.write("Random Forest Classifier com 100% de precisão em casos críticos.")
+    
+    render_footer()
 
-# --- 6. SIMULADOR DE RISCO (MANTIDO) ---
+# --- 6. SIMULADOR ---
 elif menu == "Simulador de Risco":
     st.title("Simulador de Risco Clínico")
-    st.markdown("Preencha os dados do paciente para obter o diagnóstico sugerido pela IA.")
     
     with st.form("form_ia"):
         st.markdown("#### 👤 Dados Biométricos")
@@ -274,14 +276,14 @@ elif menu == "Simulador de Risco":
         c4, c5 = st.columns(2)
         with c4: 
             family_history = st.selectbox("Histórico Familiar?", ["Sim", "Não"])
-            favc = st.selectbox("Comida Calórica Frequente?", ["Sim", "Não"])
+            favc = st.selectbox("Comida Calórica?", ["Sim", "Não"])
             smoke = st.selectbox("Tabagismo?", ["Sim", "Não"])
         with c5:
             gender = st.selectbox("Gênero", ["Masculino", "Feminino"])
             calc = st.selectbox("Álcool?", ["Não", "Às vezes", "Frequentemente", "Sempre"])
             scc = st.selectbox("Monitora Calorias?", ["Sim", "Não"])
 
-        st.markdown("#### 🏃 Estilo de Vida (Escala 1 a 3)")
+        st.markdown("#### 🏃 Estilo de Vida")
         col_s1, col_s2, col_s3 = st.columns(3)
         with col_s1: 
             fcvc = st.slider("Vegetais", 1.0, 3.0, 2.0)
@@ -317,3 +319,5 @@ elif menu == "Simulador de Risco":
                 st.success(f"✅ **Resultado:** {res_pt}")
         except Exception as e:
             st.error(f"Erro: {e}")
+
+    render_footer()
