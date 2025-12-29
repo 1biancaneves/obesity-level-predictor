@@ -4,52 +4,57 @@ import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# --- 1. CONFIGURAÇÃO E ESTILO ---
+# --- 1. CONFIGURAÇÃO E ESTILO (TEMA AZUL) ---
 st.set_page_config(
-    page_title="Obesity Analytics Pro",
-    page_icon="🏥",
+    page_title="FIAP - Obesity Analytics",
+    page_icon="💙",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# CSS AVANÇADO: Visual Limpo + Campos Claros
+# CSS PROFISSIONAL (AZUL)
 st.markdown("""
     <style>
-    /* Fundo Geral */
+    /* Fundo Geral Levemente Azulado/Cinza */
     .stApp {background-color: #f4f6f9;}
     
-    /* Cards brancos estilo Power BI */
+    /* Cards brancos com sombra suave */
     .css-card {
         background-color: white;
         padding: 20px;
         border-radius: 10px;
-        box-shadow: 0px 2px 5px rgba(0,0,0,0.05);
+        box-shadow: 0px 4px 6px rgba(0,0,0,0.05);
         margin-bottom: 20px;
     }
     
-    /* Títulos dos Cards */
+    /* Títulos dos Cards em AZUL */
     .card-title {
         color: #2c3e50;
         font-size: 18px;
-        font-weight: 600;
+        font-weight: 700;
         margin-bottom: 15px;
-        border-bottom: 2px solid #3498db;
+        border-bottom: 3px solid #3498db; /* AZUL PRINCIPAL */
         padding-bottom: 5px;
     }
     
-    /* MELHORIA NOS CAMPOS DE FORMULÁRIO (PEDIDO DO USUÁRIO) */
-    /* Deixa o fundo dos inputs branco e borda mais visível */
+    /* Campos de Input mais limpos */
     div[data-baseweb="select"] > div, 
     div[data-baseweb="input"] > div {
         background-color: #ffffff !important;
-        border-color: #d1d5db !important;
-        color: #1f2937 !important;
+        border-color: #dfe6e9 !important;
     }
     
-    /* Métricas Grandes */
+    /* Métricas Grandes em AZUL */
     div[data-testid="stMetricValue"] {
-        font-size: 26px;
-        color: #2c3e50;
+        font-size: 28px;
+        color: #3498db; /* AZUL DESTAQUE */
+        font-weight: bold;
+    }
+    
+    /* Sidebar Branca */
+    section[data-testid="stSidebar"] {
+        background-color: #ffffff;
+        border-right: 1px solid #e1e4e8;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -95,27 +100,26 @@ except:
 
 df = carregar_dados()
 
-# --- 3. MENU LATERAL ---
-st.sidebar.image("https://cdn-icons-png.flaticon.com/512/3050/3050523.png", width=80)
-st.sidebar.title("Hospital Analytics")
-menu = st.sidebar.radio("Módulos:", ["Visão Executiva", "Insights Estratégicos", "Simulador de Risco"])
+# --- 3. MENU LATERAL (LOGO) ---
+# Usei o link público transparente. Se você subiu o arquivo local, troque pelo nome dele (ex: "logo_fiap.png")
+st.sidebar.image("https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png", use_container_width=True)
+st.sidebar.markdown("<br>", unsafe_allow_html=True)
+
+st.sidebar.markdown("### Navegação")
+menu = st.sidebar.radio("", ["Visão Executiva", "Insights Estratégicos", "Simulador de Risco"])
 
 if df is not None:
     st.sidebar.markdown("---")
-    st.sidebar.subheader("Filtros Globais")
+    st.sidebar.markdown("### Filtros Globais")
     
-    # Filtros com opção padrão "Todos" se vazio
     opcoes_genero = df['Gender'].unique()
     opcoes_hist = df['family_history'].unique()
     
     filtro_genero = st.sidebar.multiselect("Gênero", opcoes_genero, default=opcoes_genero)
     filtro_hist = st.sidebar.multiselect("Histórico Familiar", opcoes_hist, default=opcoes_hist)
     
-    # CORREÇÃO DO BUG: Se o usuário limpar o filtro, seleciona TODOS automaticamente
-    if not filtro_genero:
-        filtro_genero = opcoes_genero
-    if not filtro_hist:
-        filtro_hist = opcoes_hist
+    if not filtro_genero: filtro_genero = opcoes_genero
+    if not filtro_hist: filtro_hist = opcoes_hist
     
     df_filtrado = df[
         (df['Gender'].isin(filtro_genero)) & 
@@ -123,6 +127,9 @@ if df is not None:
     ]
 else:
     df_filtrado = pd.DataFrame()
+
+st.sidebar.markdown("---")
+st.sidebar.caption("© 2025 - Tech Challenge Fase 4")
 
 # --- 4. VISÃO EXECUTIVA (DASHBOARD) ---
 if menu == "Visão Executiva":
@@ -139,8 +146,8 @@ if menu == "Visão Executiva":
         sedentarios = len(df_filtrado[df_filtrado['FAF'] <= 0.5])
         pct_sedentarios = (sedentarios / total_p) * 100
 
-        with col1: st.metric("Total de Pacientes", total_p, delta="Base Atual")
-        with col2: st.metric("Taxa de Obesidade", f"{pct_obesidade:.1f}%", delta="Alerta" if pct_obesidade > 30 else "Normal")
+        with col1: st.metric("Total de Pacientes", total_p)
+        with col2: st.metric("Taxa de Obesidade", f"{pct_obesidade:.1f}%", delta="Alerta Clínico" if pct_obesidade > 30 else "Normal", delta_color="inverse")
         with col3: st.metric("Pacientes Alto Risco", alto_risco, help="Grau II e III")
         with col4: st.metric("Taxa de Sedentarismo", f"{pct_sedentarios:.1f}%")
 
@@ -154,19 +161,28 @@ if menu == "Visão Executiva":
             ordem = ['Abaixo do Peso', 'Peso Normal', 'Sobrepeso Nível I', 'Sobrepeso Nível II', 
                      'Obesidade Grau I', 'Obesidade Grau II', 'Obesidade Mórbida']
             contagem = df_filtrado['Obesity_PT'].value_counts().reindex(ordem).fillna(0)
+            
+            # Cores Semânticas (Verde -> Amarelo -> Vermelho)
             colors = ['#2ecc71', '#2ecc71', '#f1c40f', '#f39c12', '#e67e22', '#d35400', '#c0392b']
             sns.barplot(x=contagem.values, y=contagem.index, palette=colors, ax=ax_bar)
             sns.despine(left=True, bottom=True)
             st.pyplot(fig_bar)
-            st.caption("Foco: Monitorar migração dos grupos de Sobrepeso para Obesidade.")
+            
+            with st.expander("ℹ️ Interpretação do Gráfico"):
+                st.write("""
+                Este gráfico mostra o funil de saúde da população filtrada.
+                **Insight:** A migração de pacientes das faixas amarelas (Sobrepeso) para as vermelhas (Obesidade) representa o maior custo de longo prazo para a operadora de saúde.
+                """)
 
         with c2:
             st.markdown('<div class="card-title">🧬 Fator Genético</div>', unsafe_allow_html=True)
             fam_counts = df_filtrado['family_history'].value_counts()
             fig_pie, ax_pie = plt.subplots()
-            ax_pie.pie(fam_counts, labels=fam_counts.index, autopct='%1.1f%%', startangle=90, colors=['#e74c3c', '#95a5a6'], wedgeprops=dict(width=0.4))
+            # Azul e Cinza
+            ax_pie.pie(fam_counts, labels=fam_counts.index, autopct='%1.1f%%', startangle=90, colors=['#3498db', '#bdc3c7'], wedgeprops=dict(width=0.4))
             st.pyplot(fig_pie)
-            st.caption("Histórico Familiar é o principal previsor de risco.")
+            with st.expander("ℹ️ Detalhes"):
+                st.write("A predominância de histórico familiar (Yes) sugere que programas de prevenção devem incluir triagem genética ou familiar.")
 
         st.markdown("### 🚀 Oportunidades de Intervenção")
         c3, c4 = st.columns(2)
@@ -179,17 +195,8 @@ if menu == "Visão Executiva":
             sns.heatmap(ct_norm, cmap="RdYlGn_r", annot=True, fmt=".1f", cbar=False, ax=ax_heat)
             plt.ylabel("")
             st.pyplot(fig_heat)
-            
-            # TEXTO INTERATIVO DE EXPLICAÇÃO
-            with st.expander("ℹ️ Entenda este resultado"):
-                st.write("""
-                **O que o gráfico mostra?**
-                Cores vermelhas indicam alta concentração de obesidade naquele meio de transporte. Cores verdes indicam pesos mais saudáveis.
-                
-                **Insight:**
-                Usuários de 'Automóvel' apresentam taxas muito maiores de obesidade Grau II e III. 
-                Usuários de 'Transporte Público' e 'Caminhada' tendem a ter controle de peso melhor devido à queima calórica passiva no deslocamento.
-                """)
+            with st.expander("ℹ️ Insight de Negócio"):
+                st.write("O uso de Automóveis correlaciona-se fortemente com Obesidade Grau II e III. Incentivar o transporte ativo (caminhada/bike) tem alto potencial preventivo.")
 
         with c4:
             st.markdown('<div class="card-title">💧 Consumo de Água (Litros)</div>', unsafe_allow_html=True)
@@ -197,26 +204,16 @@ if menu == "Visão Executiva":
             sns.boxplot(x='CH2O', y='Obesity_PT', data=df_filtrado, palette="Blues", order=ordem, ax=ax_box)
             plt.ylabel("")
             st.pyplot(fig_box)
-            
-            # TEXTO INTERATIVO DE EXPLICAÇÃO
-            with st.expander("ℹ️ Entenda este resultado"):
-                st.write("""
-                **Interpretação:**
-                O gráfico mostra a distribuição de consumo de água. A linha preta dentro da caixa é a mediana.
-                
-                **Insight:**
-                Note que nos níveis graves de obesidade, a mediana de consumo de água costuma ser baixa (próxima de 1L ou 1.5L). 
-                Pacientes com 'Peso Normal' frequentemente aparecem com consumo superior a 2L/dia.
-                """)
+            with st.expander("ℹ️ Insight de Negócio"):
+                st.write("Baixo consumo de água (< 1.5L) é uma constante nos grupos de alto risco. Campanhas de hidratação são intervenções de baixo custo e alto impacto.")
 
     else:
-        st.warning("⚠️ Nenhum dado disponível. Verifique se o arquivo Obesity.csv está carregado.")
+        st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
 
-# --- 5. INSIGHTS ESTRATÉGICOS (TEXTO MELHORADO) ---
+# --- 5. INSIGHTS ESTRATÉGICOS (AZUL) ---
 elif menu == "Insights Estratégicos":
     st.title("Relatório de Inteligência Clínica")
-    st.markdown("Consolidação de descobertas e recomendações para a diretoria hospitalar.")
-    
+    st.markdown("Consolidação de descobertas e recomendações para a diretoria.")
     st.markdown("---")
 
     col_txt1, col_txt2 = st.columns(2)
@@ -228,24 +225,24 @@ elif menu == "Insights Estratégicos":
         Nossa análise demonstra que o **histórico familiar** é o fator determinante mais forte. Mais de **85%** dos pacientes com Obesidade Tipo II e III possuem familiares com a mesma condição.
         
         **2. A Armadilha do Transporte**
-        Identificamos uma correlação direta entre o uso de **automóveis** e o aumento do IMC. Usuários de transporte público e caminhada apresentam índices significativamente menores de obesidade mórbida.
+        Identificamos uma correlação direta entre o uso de **automóveis** e o aumento do IMC. Usuários de transporte público apresentam índices menores de obesidade mórbida.
         
         **3. O Efeito da Hidratação**
-        Pacientes que consomem menos de **1.5L de água por dia** tendem a se concentrar nas faixas de obesidade. O aumento da ingestão hídrica está associado a grupos de peso normal e sobrepeso leve.
+        Pacientes que consomem menos de **1.5L de água por dia** tendem a se concentrar nas faixas de obesidade severa.
         """)
 
     with col_txt2:
         st.success("### 🚀 Plano de Ação Sugerido")
         st.markdown("""
         **A. Protocolo de Triagem Genética**
-        Implementar anamnese focada em histórico familiar na recepção **ou no consultório de triagem**. Pacientes com resposta positiva devem ser encaminhados para nutrição preventiva.
+        Implementar anamnese focada em histórico familiar na recepção **ou no consultório de triagem**.
         
         **B. Programa 'Hospital em Movimento'**
-        Criar incentivos para funcionários e pacientes utilizarem bicicletas ou caminhada. O combate ao sedentarismo no deslocamento diário mostra-se mais eficaz que academias esporádicas.
-        * **Exemplos de incentivos:** Voucher de desconto em farmácias, estacionamento gratuito para bicicletas ou pontuação em programa de saúde corporativa.
+        Criar incentivos para o deslocamento ativo.
+        * **Ideias:** Voucher de desconto em farmácias, abono de horas por meta de passos ou pontuação em programa de saúde.
         
         **C. Campanha de Hidratação**
-        Instalar bebedouros inteligentes e campanhas visuais. A meta é elevar o consumo médio para **2.0L/dia**, uma intervenção de baixo custo e alto impacto.
+        Meta: Elevar o consumo médio para **2.0L/dia** através de apps de lembrete e bebedouros inteligentes.
         """)
 
     st.markdown("---")
@@ -253,20 +250,15 @@ elif menu == "Insights Estratégicos":
     
     c_tec1, c_tec2 = st.columns(2)
     with c_tec1:
-        st.metric("Acurácia Real (Teste)", "93.62%", help="Assertividade em dados nunca vistos")
-        st.metric("F1-Score Médio", "0.94", help="Média harmônica entre precisão e recall")
+        st.metric("Acurácia Real (Teste)", "93.62%")
+        st.metric("Gap (Overfitting)", "5.8%")
     
     with c_tec2:
         st.write("""
-        Utilizamos um algoritmo **Random Forest Classifier** robusto. 
-        
-        **Destaques Técnicos:**
-        * **Gap de Overfitting Controlado:** A diferença entre treino e teste foi de apenas ~5.8%, indicando ótima generalização.
-        * **Precisão nos Extremos:** O modelo atingiu **100% de precisão** na identificação de 'Peso Insuficiente' e 'Obesidade Tipo III'.
-        * **Desafio Superado:** A principal dificuldade era distinguir 'Peso Normal' de 'Sobrepeso Nível I' (fronteira tênue). O modelo manteve uma performance sólida (>85% de recall) mesmo nessas classes críticas.
+        Utilizamos um algoritmo **Random Forest Classifier** com otimização de hiperparâmetros. O modelo demonstrou excelente capacidade de generalização (baixo gap entre treino e teste) e **100% de precisão** na identificação de casos críticos (Obesidade Mórbida).
         """)
 
-# --- 6. SIMULADOR DE RISCO (TRIAGEM) ---
+# --- 6. SIMULADOR DE RISCO (MANTIDO) ---
 elif menu == "Simulador de Risco":
     st.title("Simulador de Risco Clínico")
     st.markdown("Preencha os dados do paciente para obter o diagnóstico sugerido pela IA.")
