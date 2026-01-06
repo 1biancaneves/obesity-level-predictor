@@ -1,20 +1,76 @@
-## Sobre o Projeto
+# TECH CHALLENGE FASE 4 - HEALTH ANALYTICS & PREDICTION
 
-Este é um projeto de Machine Learning ponta a ponta (End-to-End) desenvolvido para classificar níveis de obesidade com base em hábitos alimentares e condição física. 
+Este projeto foi desenvolvido como parte do Tech Challenge da FIAP (Pós-Tech em Data Analytics). O objetivo é apoiar hospitais e clínicas na triagem inteligente de pacientes, predizendo níveis de obesidade com base em hábitos de vida e históricos genéticos.
 
-O modelo foi treinado com o algoritmo **Random Forest**, atingindo uma acurácia de **99%** no conjunto de teste, graças à engenharia de atributos (Criação da feature IMC/BMI). A interface foi construída com **Streamlit** para permitir o uso interativo por qualquer usuário.
+---
 
-## Funcionalidades
+## ACESSO AS APLICACOES
 
-- **Coleta Interativa:** Formulário amigável para inserir dados de idade, peso, altura e hábitos.
-- **Engenharia de Features:** Cálculo automático do IMC (Índice de Massa Corporal) em tempo real.
-- **Predição Instantânea:** Classificação entre 7 categorias, desde "Peso Insuficiente" até "Obesidade Tipo III".
-- **Feedback Visual:** Resultados codificados por cores para fácil interpretação.
+### 1. Simulador de Risco (Streamlit)
+Aplicação interativa para médicos realizarem a predição em tempo real durante a consulta.
+Link: https://obesity-level-predictor.streamlit.app/
 
-## Tecnologias Utilizadas
+### 2. Dashboard Executivo (Looker Studio)
+Painel de BI desenvolvido para a diretoria do hospital acompanhar indicadores macro e demografia.
+Link: https://lookerstudio.google.com/u/0/reporting/4d0fd9b6-3102-4077-a1ef-bff6fa6de897/page/3VGkF
 
-- **Python**: Linguagem principal.
-- **Pandas & NumPy**: Manipulação de dados.
-- **Scikit-Learn**: Treinamento do modelo e pipelines.
-- **Streamlit**: Framework para construção do Web App.
-- **Joblib**: Persistência do modelo treinado.
+---
+
+## ESTRUTURA DO REPOSITORIO
+
+Abaixo, a descrição da organização dos arquivos neste projeto:
+
+* app.py: Código fonte da aplicação Web (Streamlit). Contém o Front-end e a lógica de inferência.
+* models/modelo_obesidade.pkl: Arquivo binário contendo o algoritmo Random Forest treinado.
+* data/Obesity.csv: Dataset original utilizado para treino e para os gráficos do dashboard no app.
+* requirements.txt: Lista de bibliotecas necessárias para a execução do projeto.
+
+---
+
+## SOBRE O MODELO DE MACHINE LEARNING
+
+Utilizamos um algoritmo de Random Forest Classifier devido à sua robustez em lidar com dados não-lineares e alta capacidade de generalização.
+
+* Acurácia Global (Teste): 93.62%
+* Recall em Casos Críticos (Obesidade Mórbida): 100%
+* Precision (Peso Normal): 94.0%
+
+A escolha deste modelo se justifica pela capacidade de interpretar interações complexas entre variáveis comportamentais (como alimentação desregrada e sedentarismo digital) que modelos lineares tradicionais não capturam com a mesma eficácia.
+
+---
+
+## COMO INTERPRETAR OS RESULTADOS
+
+### No Simulador (App)
+O sistema foca na ação imediata de triagem.
+1. Preencha os dados da anamnese (biometria e hábitos).
+2. O modelo classifica o paciente entre "Peso Normal", "Sobrepeso" ou "Graus de Obesidade".
+3. O sistema sugere intervenções baseadas no grau de risco identificado.
+
+### No Dashboard (Looker Studio)
+O painel foca na visão gerencial de longo prazo.
+* Mapa de Calor: Identifica correlações entre meios de transporte e obesidade.
+* Indicadores: Monitoramento da taxa global de sedentarismo e porcentagem de pacientes em risco cardiovascular.
+
+---
+
+## INSTALACAO E EXECUCAO LOCAL
+
+Para executar este projeto em ambiente local:
+
+1. Clone o repositório.
+2. Instale as dependências listadas no arquivo requirements.txt.
+3. Execute o comando: streamlit run app.py
+
+---
+
+## AUTORES
+
+Projeto desenvolvido pelo Grupo - FIAP:
+
+* Bianca Neves
+* Erica Silva
+* Diogo Oliveira
+* Gabrielle Barbosa
+
+© 2025 - Tech Challenge Fase 4
