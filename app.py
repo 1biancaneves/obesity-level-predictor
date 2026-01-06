@@ -6,7 +6,7 @@ import seaborn as sns
 import os
 import numpy as np
 
-# --- 1. CONFIGURAÇÃO E ESTILO (RESPONSIVO & MOBILE-FIRST) ---
+# --- 1. CONFIGURAÇÃO E ESTILO ---
 st.set_page_config(
     page_title="FIAP - Health Intelligence",
     page_icon="💙",
@@ -15,7 +15,6 @@ st.set_page_config(
 )
 
 # --- CONFIGURAÇÃO GLOBAL DE GRÁFICOS ---
-# Define estilo visual dos gráficos para combinar com o CSS
 sns.set_theme(style="ticks")
 plt.rcParams['figure.facecolor'] = 'none'
 plt.rcParams['axes.facecolor'] = 'none'
@@ -27,17 +26,12 @@ plt.rcParams['axes.labelcolor'] = '#2c3e50'
 plt.rcParams['xtick.color'] = '#2c3e50'
 plt.rcParams['ytick.color'] = '#2c3e50'
 
-# CSS PARA CORRIGIR MOBILE E MODO ESCURO
+# CSS
 st.markdown("""
     <style>
-    /* Forçar Fundo Claro Global */
     [data-testid="stAppViewContainer"] { background-color: #f4f6f9 !important; }
     [data-testid="stSidebar"] { background-color: #ffffff !important; border-right: 1px solid #e1e4e8; }
-    
-    /* Texto Geral Escuro (Corrige problema de celular em modo noturno) */
     .stMarkdown, .stText, h1, h2, h3, p, li, span { color: #2c3e50 !important; }
-
-    /* Cards (Container dos Gráficos) */
     .css-card {
         background-color: white !important;
         padding: 1.5rem;
@@ -46,11 +40,7 @@ st.markdown("""
         margin-bottom: 1rem;
         color: #2c3e50 !important; 
     }
-    
-    /* Forçar cor preta em elementos dentro do card */
     .css-card * { color: #2c3e50 !important; }
-
-    /* Títulos dos Gráficos */
     .chart-header {
         font-family: 'Segoe UI', sans-serif;
         color: #2c3e50 !important;
@@ -60,8 +50,6 @@ st.markdown("""
         border-left: 5px solid #3498db;
         padding-left: 10px;
     }
-    
-    /* Caixas de Insight */
     .insight-box {
         background-color: #eef6fb !important;
         border: 1px solid #d6eaf8;
@@ -72,8 +60,6 @@ st.markdown("""
         margin-top: 10px;
         line-height: 1.4;
     }
-
-    /* Destaque Técnico */
     .tech-box {
         background-color: #fff8e1 !important;
         border-left: 5px solid #ffc107;
@@ -82,12 +68,8 @@ st.markdown("""
         color: #5d4037 !important;
         font-size: 0.90rem;
     }
-    
-    /* Métricas */
     div[data-testid="stMetricValue"] { color: #3498db !important; }
     div[data-testid="stMetricLabel"] { color: #7f8c8d !important; }
-    
-    /* Ajustes Mobile */
     @media (max-width: 768px) {
         .stColumns { display: block !important; }
         [data-testid="column"] { width: 100% !important; margin-bottom: 20px; }
@@ -96,7 +78,21 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. CARREGAMENTO INTELIGENTE (PASTAS VS RAIZ) ---
+# --- 2. DEFINIÇÕES CRÍTICAS (FUNÇÃO DEVE VIR ANTES DO MODELO) ---
+
+# ⚠️ ESSA FUNÇÃO É NECESSÁRIA PARA O MODELO FUNCIONAR ⚠️
+def arredondar_valores(X_in):
+    try:
+        X_out = X_in.copy()
+        cols_to_round = ['FCVC', 'NCP', 'CH2O', 'FAF', 'TUE']
+        # Verifica quais colunas existem no dataframe antes de arredondar
+        valid_cols = [c for c in cols_to_round if c in X_out.columns]
+        if valid_cols:
+            X_out[valid_cols] = X_out[valid_cols].round().astype(int)
+        return X_out
+    except Exception:
+        return X_in
+
 traducao_resultado = {
     'Insufficient_Weight': 'Abaixo do Peso',
     'Normal_Weight': 'Peso Normal',
@@ -107,7 +103,6 @@ traducao_resultado = {
     'Obesity_Type_III': 'Obesidade Mórbida'
 }
 
-# Ordem lógica
 ordem_obesidade = ['Abaixo do Peso', 'Peso Normal', 'Sobrepeso Nível I', 'Sobrepeso Nível II', 
                    'Obesidade Grau I', 'Obesidade Grau II', 'Obesidade Mórbida']
 
@@ -119,9 +114,7 @@ mapa_frequencia = {'Não': 'no', 'Às vezes': 'Sometimes', 'Frequentemente': 'Fr
 
 @st.cache_data
 def carregar_dados():
-    # Tenta na pasta, depois na raiz
     caminhos = ["data/Obesity.csv", "Obesity.csv"]
-    
     for c in caminhos:
         if os.path.exists(c):
             try:
@@ -134,37 +127,32 @@ def carregar_dados():
             except Exception as e:
                 st.error(f"Erro ao ler {c}: {e}")
                 return None
-    
-    st.error("❌ ERRO CRÍTICO: Arquivo 'Obesity.csv' não encontrado (nem em 'data/', nem na raiz).")
+    st.error("❌ ERRO: Arquivo 'Obesity.csv' não encontrado.")
     return None
 
 def carregar_modelo():
-    # Tenta na pasta, depois na raiz
     caminhos = ['models/modelo_obesidade.pkl', 'modelo_obesidade.pkl']
-    
     for c in caminhos:
         if os.path.exists(c):
             try:
+                # O joblib vai usar a função 'arredondar_valores' definida acima
                 return joblib.load(c)
             except Exception as e:
-                st.error(f"❌ Erro ao carregar modelo '{c}': {e}. O arquivo pode estar vazio ou corrompido.")
+                st.error(f"❌ Erro ao carregar '{c}': {e}")
                 st.stop()
-    
-    st.error("❌ ERRO CRÍTICO: Modelo .pkl não encontrado (nem em 'models/', nem na raiz).")
+    st.error("❌ ERRO: Modelo .pkl não encontrado.")
     st.stop()
 
-# Executa carregamentos
+# --- CARREGAMENTO ---
 df = carregar_dados()
 pipeline = carregar_modelo()
 
-# Função auxiliar para imagens (Assets -> Raiz -> Web)
 def get_img_path(name):
     if os.path.exists(f"assets/{name}"): return f"assets/{name}"
     if os.path.exists(name): return name
-    # Fallback seguro
     return "https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png"
 
-# --- 3. SIDEBAR E FILTROS ---
+# --- 3. SIDEBAR ---
 st.sidebar.image(get_img_path("logo3.png"), use_container_width=True)
 st.sidebar.markdown("---")
 menu = st.sidebar.radio("Navegação", ["Dashboard Analítico", "Insights Estratégicos", "Simulador de Risco"])
@@ -173,7 +161,6 @@ df_filtrado = pd.DataFrame()
 if df is not None:
     st.sidebar.markdown("---")
     st.sidebar.subheader("🕵️ Filtros Avançados")
-    
     f_gen = st.sidebar.multiselect("Gênero", df['Gender'].unique(), default=df['Gender'].unique())
     f_hist = st.sidebar.multiselect("Histórico Familiar", df['family_history'].unique(), default=df['family_history'].unique())
     f_age = st.sidebar.multiselect("Faixa Etária", df['Faixa_Etaria'].unique().astype(str), default=df['Faixa_Etaria'].unique().astype(str))
@@ -191,7 +178,7 @@ if df is not None:
         (df['MTRANS'].isin(f_trans))
     ]
 
-# --- 4. DASHBOARD ANALÍTICO ---
+# --- 4. DASHBOARD ---
 if menu == "Dashboard Analítico":
     st.title("Painel de Inteligência Médica")
     st.markdown("Análise multifatorial de riscos baseada em dados reais.")
@@ -211,7 +198,6 @@ if menu == "Dashboard Analítico":
 
         st.markdown("---")
 
-        # LINHA 1
         c1, c2 = st.columns([2, 1])
         with c1:
             st.markdown('<div class="css-card">', unsafe_allow_html=True)
@@ -241,7 +227,6 @@ if menu == "Dashboard Analítico":
 
         st.markdown("---")
         
-        # LINHA 2
         c3, c4 = st.columns(2)
         with c3:
             st.markdown('<div class="css-card">', unsafe_allow_html=True)
@@ -272,7 +257,6 @@ if menu == "Dashboard Analítico":
 
         st.markdown("---")
 
-        # LINHA 3
         c5, c6 = st.columns(2)
         with c5:
             st.markdown('<div class="css-card">', unsafe_allow_html=True)
@@ -301,7 +285,6 @@ if menu == "Dashboard Analítico":
             
         st.markdown("---")
         
-        # LINHA 4
         c7, c8, c9 = st.columns(3)
         with c7:
             st.markdown('<div class="css-card">', unsafe_allow_html=True)
@@ -313,7 +296,7 @@ if menu == "Dashboard Analítico":
             plt.ylabel("Litros/Dia")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Metabolismo:</b> Consumo de água cai drasticamente nos grupos de risco.
+            <b>Metabolismo:</b> Consumo de água cai nos grupos de risco.
             </div></div>""", unsafe_allow_html=True)
 
         with c8:
@@ -340,62 +323,52 @@ if menu == "Dashboard Analítico":
             plt.ylabel("Refeições/Dia")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Rotina:</b> Poucas refeições (jejum) seguido de compulsão é comum.
+            <b>Rotina:</b> Jejum + compulsão é comum.
             </div></div>""", unsafe_allow_html=True)
-
     else:
         st.warning("⚠️ Nenhum dado disponível.")
 
-# --- 5. INSIGHTS ESTRATÉGICOS ---
+# --- 5. INSIGHTS ---
 elif menu == "Insights Estratégicos":
     st.title("Relatório Executivo")
     st.markdown("Análise profunda, plano de ação e auditoria técnica do modelo.")
     st.markdown("---")
-
     col_txt1, col_txt2 = st.columns(2)
-
     with col_txt1:
         st.markdown('<div class="css-card">', unsafe_allow_html=True)
         st.markdown("### 🔍 Diagnóstico (5 Pilares)")
         st.markdown("""
-        **1. Hereditariedade:** >85% dos casos graves têm histórico familiar positivo.
-        **2. Mobilidade:** Uso de carro correlaciona com alto IMC; transporte ativo protege.
-        **3. Alimentação:** O perigo é comer "Às vezes" entre refeições (falta de rotina).
+        **1. Hereditariedade:** >85% dos casos graves têm histórico familiar.
+        **2. Mobilidade:** Uso de carro correlaciona com alto IMC.
+        **3. Alimentação:** Falta de rotina é o maior vilão.
         **4. Hidratação:** Obesos bebem <1.5L de água/dia.
         **5. Tecnologia:** Tempo de tela compete com atividade física.
         """)
         st.markdown('</div>', unsafe_allow_html=True)
-
     with col_txt2:
         st.markdown('<div class="css-card">', unsafe_allow_html=True)
         st.markdown("### 🚀 Plano de Ação")
         st.success("""
-        **A. Triagem Genética:** Pergunta obrigatória sobre família na admissão.
-        **B. Gamificação:** Prêmios por passos ou uso de bike.
-        **C. Reeducação:** Substituir belisco por lanche programado.
-        **D. Hidratação:** Meta de 2.0L/dia com campanhas visuais.
+        **A. Triagem Genética:** Pergunta obrigatória na admissão.
+        **B. Gamificação:** Prêmios por passos.
+        **C. Reeducação:** Lanche programado.
+        **D. Hidratação:** Meta de 2.0L/dia.
         """)
         st.markdown('</div>', unsafe_allow_html=True)
-
     st.markdown("---")
-    
-    # --- AUDITORIA TÉCNICA ---
     st.markdown("### 🤖 Auditoria Técnica do Modelo")
-    
     c_tec1, c_tec2 = st.columns([1, 2])
-    
     with c_tec1:
         st.metric("Acurácia Global", "93.62%", delta="Excelente")
         st.metric("Recall (Obesidade III)", "100.0%", delta="Segurança Máxima")
         st.metric("Precision (Peso Normal)", "94.0%")
-    
     with c_tec2:
         st.markdown("""
         <div class="tech-box">
         <b>Robustez do Random Forest:</b><br>
         1. Captura relações não-lineares.<br>
-        2. <b>Recall de 100%</b> em casos graves garante segurança.<br>
-        3. Alta performance via engenharia de atributos.
+        2. <b>Recall de 100%</b> em casos graves.<br>
+        3. Engenharia de atributos otimizada.
         </div>
         """, unsafe_allow_html=True)
 
@@ -407,7 +380,6 @@ elif menu == "Simulador de Risco":
         with c1: age = st.number_input("Idade", 10, 100, 30)
         with c2: height = st.number_input("Altura (m)", 1.20, 2.50, 1.70)
         with c3: weight = st.number_input("Peso (kg)", 30.0, 200.0, 80.0)
-        
         c4, c5 = st.columns(2)
         with c4: 
             family_history = st.selectbox("Histórico Familiar?", ["Sim", "Não"])
@@ -417,7 +389,6 @@ elif menu == "Simulador de Risco":
             gender = st.selectbox("Gênero", ["Masculino", "Feminino"])
             calc = st.selectbox("Álcool?", ["Não", "Às vezes", "Frequentemente", "Sempre"])
             scc = st.selectbox("Monitora Calorias?", ["Sim", "Não"])
-
         st.markdown("#### 🏃 Estilo de Vida")
         col_s1, col_s2, col_s3 = st.columns(3)
         with col_s1: 
@@ -430,9 +401,7 @@ elif menu == "Simulador de Risco":
             ch2o = st.slider("Água (Litros/Dia)", 1.0, 3.0, 2.0)
             mtrans = st.selectbox("Transporte Principal", list(mapa_transporte.keys()))
             caec = st.selectbox("Comer entre ref.", list(mapa_frequencia.keys()))
-
         submit = st.form_submit_button("Gerar Diagnóstico")
-
     if submit:
         dados = pd.DataFrame({
             'Age': [age], 'Gender': [mapa_genero[gender]], 'Height': [height], 'Weight': [weight],
@@ -445,24 +414,18 @@ elif menu == "Simulador de Risco":
             res = pipeline.predict(dados)[0]
             res_pt = traducao_resultado.get(res, res)
             st.markdown("---")
-            if "Obesidade" in res_pt:
-                st.error(f"🚨 **Diagnóstico:** {res_pt}")
-            elif "Sobrepeso" in res_pt:
-                st.warning(f"⚠️ **Diagnóstico:** {res_pt}")
-            else:
-                st.success(f"✅ **Diagnóstico:** {res_pt}")
-        except Exception as e:
-            st.error(f"Erro: {e}")
+            if "Obesidade" in res_pt: st.error(f"🚨 **Diagnóstico:** {res_pt}")
+            elif "Sobrepeso" in res_pt: st.warning(f"⚠️ **Diagnóstico:** {res_pt}")
+            else: st.success(f"✅ **Diagnóstico:** {res_pt}")
+        except Exception as e: st.error(f"Erro: {e}")
 
 # --- RODAPÉ ---
 st.markdown("---")
 st.markdown("<br>", unsafe_allow_html=True)
 col_f1, col_f2, col_f3, col_f4, col_f5 = st.columns([1, 2, 2, 2, 1], vertical_alignment="center")
-
 with col_f2: st.image(get_img_path("logo1.png"), use_container_width=True)
 with col_f3: st.image(get_img_path("logo2.png"), use_container_width=True)
 with col_f4: st.image(get_img_path("logo3.png"), use_container_width=True)
-
 st.markdown("""
     <div style="text-align: center; color: #7f8c8d; font-size: 12px; margin-top: 15px;">
         © 2025 - Tech Challenge Fase 4<br>
