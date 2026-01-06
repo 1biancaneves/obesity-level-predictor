@@ -52,19 +52,20 @@ st.markdown("""
         border: 1px solid #d6eaf8;
         padding: 15px;
         border-radius: 8px;
-        font-size: 0.90rem; /* Fonte levemente menor para caber em colunas */
+        font-size: 0.90rem;
         color: #2c3e50;
         margin-top: 10px;
         line-height: 1.4;
     }
 
-    /* Destaque Técnico */
+    /* Destaque Técnico (Amarelo) */
     .tech-box {
         background-color: #fff8e1;
         border-left: 5px solid #ffc107;
         padding: 15px;
         border-radius: 5px;
         color: #5d4037;
+        font-size: 0.90rem;
     }
     
     /* Ajustes Mobile */
@@ -96,30 +97,33 @@ mapa_transporte = {'Transporte Público': 'Public_Transportation', 'Caminhada': 
                    'Carro': 'Automobile', 'Moto': 'Motorbike', 'Bicicleta': 'Bike'}
 mapa_frequencia = {'Não': 'no', 'Às vezes': 'Sometimes', 'Frequentemente': 'Frequently', 'Sempre': 'Always'}
 
-def arredondar_valores(X_in):
-    X_out = X_in.copy()
-    cols_to_round = ['FCVC', 'NCP', 'CH2O', 'FAF', 'TUE']
-    valid_cols = [c for c in cols_to_round if c in X_out.columns]
-    X_out[valid_cols] = X_out[valid_cols].round().astype(int)
-    return X_out
-
 @st.cache_data
 def carregar_dados():
+    # Tenta carregar da pasta organizada, senão tenta na raiz (fallback)
+    caminho = "data/Obesity.csv"
+    if not os.path.exists(caminho):
+        caminho = "Obesity.csv" # Fallback
+        
     try:
-        df = pd.read_csv("Obesity.csv")
+        df = pd.read_csv(caminho)
         df['Obesity_PT'] = df['Obesity'].map(traducao_resultado)
         # Faixas Etárias para Filtro
         bins = [0, 19, 29, 45, 60, 100]
         labels = ['0-19 (Jovens)', '20-29 (Adultos Jovens)', '30-45 (Adultos)', '46-60 (Meia Idade)', '60+ (Idosos)']
         df['Faixa_Etaria'] = pd.cut(df['Age'], bins=bins, labels=labels)
         return df
-    except:
+    except Exception as e:
         return None
 
 try:
-    pipeline = joblib.load('modelo_obesidade.pkl')
+    # Tenta carregar da pasta organizada, senão tenta na raiz
+    model_path = 'models/modelo_obesidade.pkl'
+    if not os.path.exists(model_path):
+        model_path = 'modelo_obesidade.pkl'
+        
+    pipeline = joblib.load(model_path)
 except:
-    st.error("Erro crítico: Arquivo 'modelo_obesidade.pkl' não encontrado.")
+    st.error("⚠️ ERRO CRÍTICO: Arquivo do modelo não encontrado. Verifique se 'modelo_obesidade.pkl' está na pasta 'models' ou na raiz.")
     st.stop()
 
 df = carregar_dados()
@@ -129,19 +133,18 @@ def render_footer():
     st.markdown("---")
     st.markdown("<br>", unsafe_allow_html=True)
     
+    # Grid centralizado verticalmente
     c1, c2, c3, c4, c5 = st.columns([1, 2, 2, 2, 1], vertical_alignment="center") 
     
-    backup_logo = "https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png"
+    # Caminhos das imagens (Assets ou Raiz ou Web)
+    def get_img_path(name):
+        if os.path.exists(f"assets/{name}"): return f"assets/{name}"
+        if os.path.exists(name): return name
+        return "https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png" # Backup Online
     
-    with c2:
-        if os.path.exists("logo1.png"): st.image("logo1.png", use_container_width=True)
-        else: st.image(backup_logo, use_container_width=True)
-    with c3:
-        if os.path.exists("logo2.png"): st.image("logo2.png", use_container_width=True)
-        else: st.image(backup_logo, use_container_width=True)
-    with c4:
-        if os.path.exists("logo3.png"): st.image("logo3.png", use_container_width=True)
-        else: st.image(backup_logo, use_container_width=True)
+    with c2: st.image(get_img_path("logo1.png"), use_container_width=True)
+    with c3: st.image(get_img_path("logo2.png"), use_container_width=True)
+    with c4: st.image(get_img_path("logo3.png"), use_container_width=True)
 
     st.markdown("""
         <div style="text-align: center; color: #7f8c8d; font-size: 12px; margin-top: 15px;">
@@ -151,10 +154,9 @@ def render_footer():
     """, unsafe_allow_html=True)
 
 # --- 3. SIDEBAR E FILTROS ---
-if os.path.exists("logo3.png"):
-    st.sidebar.image("logo3.png", use_container_width=True)
-else:
-    st.sidebar.image("https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png", use_container_width=True)
+# Logo Principal
+logo_main = "assets/logo3.png" if os.path.exists("assets/logo3.png") else ("logo3.png" if os.path.exists("logo3.png") else "https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png")
+st.sidebar.image(logo_main, use_container_width=True)
 
 st.sidebar.markdown("---")
 menu = st.sidebar.radio("Navegação", ["Dashboard Analítico", "Insights Estratégicos", "Simulador de Risco"])
@@ -168,8 +170,8 @@ if df is not None:
     f_hist = st.sidebar.multiselect("Histórico Familiar", df['family_history'].unique(), default=df['family_history'].unique())
     f_age = st.sidebar.multiselect("Faixa Etária", df['Faixa_Etaria'].unique().astype(str), default=df['Faixa_Etaria'].unique().astype(str))
     f_trans = st.sidebar.multiselect("Transporte", df['MTRANS'].unique(), default=df['MTRANS'].unique())
-    f_ativ = st.sidebar.slider("Nível Ativ. Física (FAF)", 0.0, 3.0, (0.0, 3.0))
     
+    # Tratamento para "Selecionar Tudo" se vazio
     if not f_gen: f_gen = df['Gender'].unique()
     if not f_hist: f_hist = df['family_history'].unique()
     if not f_age: f_age = df['Faixa_Etaria'].unique().astype(str)
@@ -179,11 +181,10 @@ if df is not None:
         (df['Gender'].isin(f_gen)) & 
         (df['family_history'].isin(f_hist)) & 
         (df['Faixa_Etaria'].astype(str).isin(f_age)) &
-        (df['MTRANS'].isin(f_trans)) &
-        (df['FAF'] >= f_ativ[0]) & (df['FAF'] <= f_ativ[1])
+        (df['MTRANS'].isin(f_trans))
     ]
 else:
-    st.warning("Carregue o arquivo Obesity.csv")
+    st.warning("⚠️ Arquivo 'Obesity.csv' não encontrado. Faça o upload para visualizar os dados.")
 
 # --- 4. DASHBOARD ANALÍTICO ---
 if menu == "Dashboard Analítico":
@@ -195,13 +196,14 @@ if menu == "Dashboard Analítico":
         col1, col2, col3, col4 = st.columns(4)
         total = len(df_filtrado)
         obesos = df_filtrado['Obesity'].str.contains('Obesity').sum()
-        pct_ob = (obesos / total) * 100
+        pct_ob = (obesos / total) * 100 if total > 0 else 0
         alto_risco = df_filtrado['Obesity'].isin(['Obesity_Type_II', 'Obesity_Type_III']).sum()
         
         with col1: st.metric("Pacientes Filtrados", total)
         with col2: st.metric("Taxa Obesidade Global", f"{pct_ob:.1f}%", delta="Base Selecionada")
         with col3: st.metric("Alto Risco (Grau II+)", alto_risco, delta="Prioridade Máxima", delta_color="inverse")
-        with col4: st.metric("Média IMC Estimada", f"{(df_filtrado['Weight']/(df_filtrado['Height']**2)).mean():.1f}")
+        imc_medio = (df_filtrado['Weight']/(df_filtrado['Height']**2)).mean()
+        with col4: st.metric("Média IMC Estimada", f"{imc_medio:.1f}")
 
         st.markdown("---")
 
@@ -217,7 +219,7 @@ if menu == "Dashboard Analítico":
             plt.xticks(rotation=45, ha='right')
             st.pyplot(fig, use_container_width=True)
             
-            maior_grupo = contagem.idxmax()
+            maior_grupo = contagem.idxmax() if not contagem.empty else "N/A"
             st.markdown(f"""<div class="insight-box">
             <b>Insight de Negócio:</b> O perfil predominante nesta seleção é <b>{maior_grupo}</b>. 
             Se as barras inferiores (Laranja/Vermelho) dominarem, estamos diante de um grupo com alta sinistralidade e custo médico.
@@ -227,8 +229,9 @@ if menu == "Dashboard Analítico":
             st.markdown('<div class="chart-header">2. Carga Genética</div>', unsafe_allow_html=True)
             fig, ax = plt.subplots()
             fam = df_filtrado['family_history'].value_counts()
-            ax.pie(fam, labels=fam.index, autopct='%1.1f%%', colors=['#e74c3c', '#bdc3c7'], startangle=90)
-            st.pyplot(fig, use_container_width=True)
+            if not fam.empty:
+                ax.pie(fam, labels=fam.index, autopct='%1.1f%%', colors=['#e74c3c', '#bdc3c7'], startangle=90)
+                st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
             <b>Hereditariedade:</b> Em grupos de Obesidade Grau III, este gráfico geralmente mostra >85% de "Yes". Isso reforça a necessidade de medicina preventiva familiar.
             </div>""", unsafe_allow_html=True)
@@ -240,12 +243,13 @@ if menu == "Dashboard Analítico":
         with c3:
             st.markdown('<div class="chart-header">3. Mapa de Calor: Transporte x Peso</div>', unsafe_allow_html=True)
             ct = pd.crosstab(df_filtrado['MTRANS'], df_filtrado['Obesity_PT'])
-            ct_norm = ct.div(ct.sum(axis=1), axis=0)
-            fig, ax = plt.subplots(figsize=(8, 5))
-            sns.heatmap(ct_norm, cmap="RdYlGn_r", annot=True, fmt=".0%", cbar=False, ax=ax)
-            plt.ylabel("Meio de Transporte")
-            plt.xlabel("")
-            st.pyplot(fig, use_container_width=True)
+            if not ct.empty:
+                ct_norm = ct.div(ct.sum(axis=1), axis=0)
+                fig, ax = plt.subplots(figsize=(8, 5))
+                sns.heatmap(ct_norm, cmap="RdYlGn_r", annot=True, fmt=".0%", cbar=False, ax=ax)
+                plt.ylabel("Meio de Transporte")
+                plt.xlabel("")
+                st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
             <b>Mobilidade Ativa:</b>
             Observe a linha "Automobile". O vermelho intenso nas colunas de Obesidade mostra que o sedentarismo no deslocamento é um fator crítico. Caminhada (Walking) atua como fator de proteção.
@@ -294,7 +298,7 @@ if menu == "Dashboard Analítico":
             
         st.markdown("---")
         
-        # LINHA 4 (MINI GRÁFICOS COM EXPLICAÇÃO)
+        # LINHA 4 (MINI GRÁFICOS COM EXPLICAÇÃO PADRONIZADA)
         c7, c8, c9 = st.columns(3)
         with c7:
             st.markdown('<div class="chart-header">7. Hidratação (Litros)</div>', unsafe_allow_html=True)
@@ -319,7 +323,7 @@ if menu == "Dashboard Analítico":
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
             <b>Fator Comorbidade:</b>
-            Embora fumantes às vezes tenham peso menor, a combinação <b>Obesidade + Cigarro</b> multiplica o risco cardiovascular. Atenção redobrada.
+            Embora fumantes às vezes tenham peso menor, a combinação <b>Obesidade + Cigarro</b> multiplica o risco cardiovascular. Atenção redobrada na triagem.
             </div>""", unsafe_allow_html=True)
             
         with c9:
@@ -331,12 +335,12 @@ if menu == "Dashboard Analítico":
             plt.ylabel("Refeições/Dia")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Rotina:</b>
-            Um número baixo de refeições (1 ou 2) muitas vezes indica jejuns prolongados seguidos de compulsão, padrão comum em alto IMC.
+            <b>Rotina Alimentar:</b>
+            Um número baixo de refeições (1 ou 2) muitas vezes indica jejuns prolongados seguidos de compulsão alimentar, padrão comum em alto IMC.
             </div>""", unsafe_allow_html=True)
 
     else:
-        st.warning("⚠️ Nenhum dado disponível.")
+        st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
     
     render_footer()
 
