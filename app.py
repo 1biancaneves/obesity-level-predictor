@@ -6,7 +6,7 @@ import seaborn as sns
 import os
 import numpy as np
 
-# --- 1. CONFIGURAÇÃO E ESTILO (MOBILE FIX) ---
+# --- 1. CONFIGURAÇÃO E ESTILO (RESPONSIVO & MOBILE-FIRST) ---
 st.set_page_config(
     page_title="FIAP - Health Intelligence",
     page_icon="💙",
@@ -21,27 +21,20 @@ plt.rcParams['axes.facecolor'] = 'none'
 plt.rcParams['savefig.facecolor'] = 'none'
 plt.rcParams['axes.spines.top'] = False
 plt.rcParams['axes.spines.right'] = False
-plt.rcParams['text.color'] = '#2c3e50'     # Força cor do texto nos gráficos
+plt.rcParams['text.color'] = '#2c3e50'
 plt.rcParams['axes.labelcolor'] = '#2c3e50'
 plt.rcParams['xtick.color'] = '#2c3e50'
 plt.rcParams['ytick.color'] = '#2c3e50'
 
-# CSS SUPER FORTE PARA SOBRESCREVER MODO ESCURO
+# CSS PARA CORRIGIR MOBILE E MODO ESCURO
 st.markdown("""
     <style>
-    /* Forçar Fundo Claro Global (Ignora Dark Mode do Celular) */
-    [data-testid="stAppViewContainer"] {
-        background-color: #f4f6f9 !important;
-    }
-    [data-testid="stSidebar"] {
-        background-color: #ffffff !important;
-        border-right: 1px solid #e1e4e8;
-    }
+    /* Forçar Fundo Claro Global */
+    [data-testid="stAppViewContainer"] { background-color: #f4f6f9 !important; }
+    [data-testid="stSidebar"] { background-color: #ffffff !important; border-right: 1px solid #e1e4e8; }
     
-    /* Texto Geral do App (Fora dos cards) - Garante contraste */
-    .stMarkdown, .stText, h1, h2, h3, p {
-        color: #2c3e50 !important;
-    }
+    /* Texto Geral Escuro */
+    .stMarkdown, .stText, h1, h2, h3, p, li { color: #2c3e50 !important; }
 
     /* Cards (Container dos Gráficos) */
     .css-card {
@@ -50,14 +43,11 @@ st.markdown("""
         border-radius: 12px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         margin-bottom: 1rem;
-        /* TRAVA DE COR: Força texto escuro dentro do card branco */
         color: #2c3e50 !important; 
     }
     
-    /* Forçar cor preta em todos os elementos dentro do card */
-    .css-card * {
-        color: #2c3e50 !important;
-    }
+    /* Forçar cor preta em elementos dentro do card */
+    .css-card * { color: #2c3e50 !important; }
 
     /* Títulos dos Gráficos */
     .chart-header {
@@ -70,7 +60,7 @@ st.markdown("""
         padding-left: 10px;
     }
     
-    /* Caixas de Insight (Azul Claro) */
+    /* Caixas de Insight */
     .insight-box {
         background-color: #eef6fb !important;
         border: 1px solid #d6eaf8;
@@ -92,13 +82,9 @@ st.markdown("""
         font-size: 0.90rem;
     }
     
-    /* Métricas (Números Grandes) - Forçar Azul */
-    div[data-testid="stMetricValue"] {
-        color: #3498db !important;
-    }
-    div[data-testid="stMetricLabel"] {
-        color: #7f8c8d !important;
-    }
+    /* Métricas */
+    div[data-testid="stMetricValue"] { color: #3498db !important; }
+    div[data-testid="stMetricLabel"] { color: #7f8c8d !important; }
     
     /* Ajustes Mobile */
     @media (max-width: 768px) {
@@ -109,7 +95,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. PREPARAÇÃO ---
+# --- 2. CARREGAMENTO DE DADOS E MODELO (COM PASTAS) ---
 traducao_resultado = {
     'Insufficient_Weight': 'Abaixo do Peso',
     'Normal_Weight': 'Peso Normal',
@@ -120,7 +106,7 @@ traducao_resultado = {
     'Obesity_Type_III': 'Obesidade Mórbida'
 }
 
-# Ordem lógica de gravidade
+# Ordem lógica
 ordem_obesidade = ['Abaixo do Peso', 'Peso Normal', 'Sobrepeso Nível I', 'Sobrepeso Nível II', 
                    'Obesidade Grau I', 'Obesidade Grau II', 'Obesidade Mórbida']
 
@@ -132,58 +118,53 @@ mapa_frequencia = {'Não': 'no', 'Às vezes': 'Sometimes', 'Frequentemente': 'Fr
 
 @st.cache_data
 def carregar_dados():
+    # Caminho exato baseado na sua estrutura de pastas
     caminho = "data/Obesity.csv"
+    
     if not os.path.exists(caminho):
-        caminho = "Obesity.csv" # Fallback
+        st.error(f"❌ ERRO CRÍTICO: O arquivo '{caminho}' não foi encontrado.")
+        st.info("Confira se a pasta 'data' existe no GitHub e se o arquivo 'Obesity.csv' está dentro dela.")
+        return None
         
     try:
         df = pd.read_csv(caminho)
         df['Obesity_PT'] = df['Obesity'].map(traducao_resultado)
-        # Faixas Etárias para Filtro
         bins = [0, 19, 29, 45, 60, 100]
         labels = ['0-19 (Jovens)', '20-29 (Adultos Jovens)', '30-45 (Adultos)', '46-60 (Meia Idade)', '60+ (Idosos)']
         df['Faixa_Etaria'] = pd.cut(df['Age'], bins=bins, labels=labels)
         return df
     except Exception as e:
+        st.error(f"Erro ao ler o CSV: {e}")
         return None
 
 try:
+    # Caminho exato do modelo
     model_path = 'models/modelo_obesidade.pkl'
+    
     if not os.path.exists(model_path):
-        model_path = 'modelo_obesidade.pkl'
+        st.error(f"❌ ERRO CRÍTICO: O modelo '{model_path}' não foi encontrado.")
+        st.info("Confira se a pasta 'models' existe e se o arquivo .pkl está lá.")
+        st.stop()
+        
     pipeline = joblib.load(model_path)
-except:
-    st.error("⚠️ ERRO: Modelo não encontrado. Verifique a pasta 'models'.")
+except Exception as e:
+    st.error(f"Erro ao carregar modelo: {e}")
     st.stop()
 
 df = carregar_dados()
 
-# --- FUNÇÃO DE RODAPÉ ---
-def render_footer():
-    st.markdown("---")
-    st.markdown("<br>", unsafe_allow_html=True)
-    c1, c2, c3, c4, c5 = st.columns([1, 2, 2, 2, 1], vertical_alignment="center") 
-    
-    # Função para buscar imagem com fallback
-    def get_img_path(name):
-        if os.path.exists(f"assets/{name}"): return f"assets/{name}"
-        if os.path.exists(name): return name
-        return "https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png"
-    
-    with c2: st.image(get_img_path("logo1.png"), use_container_width=True)
-    with c3: st.image(get_img_path("logo2.png"), use_container_width=True)
-    with c4: st.image(get_img_path("logo3.png"), use_container_width=True)
-
-    st.markdown("""
-        <div style="text-align: center; color: #7f8c8d; font-size: 12px; margin-top: 15px;">
-            © 2025 - Tech Challenge Fase 4<br>
-            <b>Created by Bianca Neves, Erica Silva, Diogo Oliveira e Gabrielle Barbosa</b>
-        </div>
-    """, unsafe_allow_html=True)
+# Função auxiliar para imagens na pasta assets
+def get_img_path(name):
+    path = f"assets/{name}"
+    if os.path.exists(path):
+        return path
+    # Fallback online caso a imagem falhe
+    return "https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png"
 
 # --- 3. SIDEBAR E FILTROS ---
-logo_main = "assets/logo3.png" if os.path.exists("assets/logo3.png") else ("logo3.png" if os.path.exists("logo3.png") else "https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png")
-st.sidebar.image(logo_main, use_container_width=True)
+# Tenta usar logo3 ou logo4 da pasta assets para a sidebar
+logo_sidebar = get_img_path("logo3.png")
+st.sidebar.image(logo_sidebar, use_container_width=True)
 
 st.sidebar.markdown("---")
 menu = st.sidebar.radio("Navegação", ["Dashboard Analítico", "Insights Estratégicos", "Simulador de Risco"])
@@ -209,8 +190,6 @@ if df is not None:
         (df['Faixa_Etaria'].astype(str).isin(f_age)) &
         (df['MTRANS'].isin(f_trans))
     ]
-else:
-    st.warning("⚠️ Arquivo 'Obesity.csv' não encontrado.")
 
 # --- 4. DASHBOARD ANALÍTICO ---
 if menu == "Dashboard Analítico":
@@ -218,7 +197,6 @@ if menu == "Dashboard Analítico":
     st.markdown("Análise multifatorial de riscos baseada em dados reais.")
 
     if not df_filtrado.empty:
-        # KPI ROW
         col1, col2, col3, col4 = st.columns(4)
         total = len(df_filtrado)
         obesos = df_filtrado['Obesity'].str.contains('Obesity').sum()
@@ -236,7 +214,7 @@ if menu == "Dashboard Analítico":
         # LINHA 1
         c1, c2 = st.columns([2, 1])
         with c1:
-            st.markdown('<div class="css-card">', unsafe_allow_html=True) # Container Card Manual
+            st.markdown('<div class="css-card">', unsafe_allow_html=True)
             st.markdown('<div class="chart-header">1. Distribuição Clínica</div>', unsafe_allow_html=True)
             fig, ax = plt.subplots(figsize=(8, 4))
             contagem = df_filtrado['Obesity_PT'].value_counts().reindex(ordem_obesidade).fillna(0)
@@ -258,7 +236,7 @@ if menu == "Dashboard Analítico":
                 ax.pie(fam, labels=fam.index, autopct='%1.1f%%', colors=['#e74c3c', '#bdc3c7'], startangle=90)
                 st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Hereditariedade:</b> >80% de histórico positivo em casos graves reforça a necessidade de prevenção familiar.
+            <b>Hereditariedade:</b> >80% de histórico positivo em casos graves.
             </div></div>""", unsafe_allow_html=True)
 
         st.markdown("---")
@@ -277,7 +255,7 @@ if menu == "Dashboard Analítico":
                 plt.xlabel("")
                 st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Mobilidade:</b> Vermelho intenso em 'Automobile' nas colunas de obesidade indica sedentarismo crítico.
+            <b>Mobilidade:</b> Vermelho intenso em 'Automobile' indica sedentarismo crítico.
             </div></div>""", unsafe_allow_html=True)
 
         with c4:
@@ -289,7 +267,7 @@ if menu == "Dashboard Analítico":
             plt.ylabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Efeito Tela:</b> Maior uso de telas (direita) correlaciona com obesidade mórbida.
+            <b>Efeito Tela:</b> Maior uso de telas correlaciona com obesidade mórbida.
             </div></div>""", unsafe_allow_html=True)
 
         st.markdown("---")
@@ -306,7 +284,7 @@ if menu == "Dashboard Analítico":
             plt.ylabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Snacking:</b> O maior vilão é comer "Às vezes" (Sometimes) sem planejamento, não apenas "Sempre".
+            <b>Snacking:</b> O maior vilão é comer "Às vezes" (Sometimes) sem planejamento.
             </div></div>""", unsafe_allow_html=True)
 
         with c6:
@@ -318,7 +296,7 @@ if menu == "Dashboard Analítico":
             plt.ylabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Progressão:</b> Se a mediana (linha) sobe nos grupos obesos, confirma acúmulo de peso com a idade.
+            <b>Progressão:</b> Confirma acúmulo de peso com a idade.
             </div></div>""", unsafe_allow_html=True)
             
         st.markdown("---")
@@ -366,9 +344,7 @@ if menu == "Dashboard Analítico":
             </div></div>""", unsafe_allow_html=True)
 
     else:
-        st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
-    
-    render_footer()
+        st.warning("⚠️ Nenhum dado disponível.")
 
 # --- 5. INSIGHTS ESTRATÉGICOS ---
 elif menu == "Insights Estratégicos":
@@ -383,13 +359,9 @@ elif menu == "Insights Estratégicos":
         st.markdown("### 🔍 Diagnóstico (5 Pilares)")
         st.markdown("""
         **1. Hereditariedade:** >85% dos casos graves têm histórico familiar positivo.
-        
         **2. Mobilidade:** Uso de carro correlaciona com alto IMC; transporte ativo protege.
-        
         **3. Alimentação:** O perigo é comer "Às vezes" entre refeições (falta de rotina).
-        
         **4. Hidratação:** Obesos bebem <1.5L de água/dia.
-        
         **5. Tecnologia:** Tempo de tela compete com atividade física.
         """)
         st.markdown('</div>', unsafe_allow_html=True)
@@ -399,11 +371,8 @@ elif menu == "Insights Estratégicos":
         st.markdown("### 🚀 Plano de Ação")
         st.success("""
         **A. Triagem Genética:** Pergunta obrigatória sobre família na admissão.
-        
         **B. Gamificação:** Prêmios por passos ou uso de bike.
-        
         **C. Reeducação:** Substituir belisco por lanche programado.
-        
         **D. Hidratação:** Meta de 2.0L/dia com campanhas visuais.
         """)
         st.markdown('</div>', unsafe_allow_html=True)
@@ -424,27 +393,21 @@ elif menu == "Insights Estratégicos":
         st.markdown("""
         <div class="tech-box">
         <b>Robustez do Random Forest:</b><br>
-        1. Captura relações não-lineares (ex: Vegetais x Sedentarismo).<br>
-        2. <b>Recall de 100%</b> em casos graves garante segurança na triagem.<br>
-        3. Alta performance via engenharia de atributos (conversão de categóricos).
+        1. Captura relações não-lineares.<br>
+        2. <b>Recall de 100%</b> em casos graves garante segurança.<br>
+        3. Alta performance via engenharia de atributos.
         </div>
         """, unsafe_allow_html=True)
-    
-    render_footer()
 
 # --- 6. SIMULADOR ---
 elif menu == "Simulador de Risco":
     st.title("Simulador de Risco Clínico")
-    st.markdown("Preencha a anamnese para obter a predição do modelo em tempo real.")
-    
     with st.form("form_ia"):
-        st.markdown("#### 👤 Dados Biométricos")
         c1, c2, c3 = st.columns(3)
         with c1: age = st.number_input("Idade", 10, 100, 30)
         with c2: height = st.number_input("Altura (m)", 1.20, 2.50, 1.70)
         with c3: weight = st.number_input("Peso (kg)", 30.0, 200.0, 80.0)
         
-        st.markdown("#### 🏥 Histórico e Hábitos")
         c4, c5 = st.columns(2)
         with c4: 
             family_history = st.selectbox("Histórico Familiar?", ["Sim", "Não"])
@@ -481,18 +444,28 @@ elif menu == "Simulador de Risco":
         try:
             res = pipeline.predict(dados)[0]
             res_pt = traducao_resultado.get(res, res)
-            
             st.markdown("---")
             if "Obesidade" in res_pt:
-                st.error(f"🚨 **Diagnóstico Sugerido:** {res_pt}")
-                st.write("**Recomendação:** Encaminhar para Endrocrinologia e Nutrição.")
+                st.error(f"🚨 **Diagnóstico:** {res_pt}")
             elif "Sobrepeso" in res_pt:
-                st.warning(f"⚠️ **Diagnóstico Sugerido:** {res_pt}")
-                st.write("**Recomendação:** Mudança de estilo de vida e monitoramento.")
+                st.warning(f"⚠️ **Diagnóstico:** {res_pt}")
             else:
-                st.success(f"✅ **Diagnóstico Sugerido:** {res_pt}")
-                st.write("**Recomendação:** Manter hábitos atuais.")
+                st.success(f"✅ **Diagnóstico:** {res_pt}")
         except Exception as e:
-            st.error(f"Erro no processamento: {e}")
-    
-    render_footer()
+            st.error(f"Erro: {e}")
+
+# --- RODAPÉ ---
+st.markdown("---")
+st.markdown("<br>", unsafe_allow_html=True)
+col_f1, col_f2, col_f3, col_f4, col_f5 = st.columns([1, 2, 2, 2, 1], vertical_alignment="center")
+
+with col_f2: st.image(get_img_path("logo1.png"), use_container_width=True)
+with col_f3: st.image(get_img_path("logo2.png"), use_container_width=True)
+with col_f4: st.image(get_img_path("logo3.png"), use_container_width=True)
+
+st.markdown("""
+    <div style="text-align: center; color: #7f8c8d; font-size: 12px; margin-top: 15px;">
+        © 2025 - Tech Challenge Fase 4<br>
+        <b>Created by Bianca Neves, Erica Silva, Diogo Oliveira e Gabrielle Barbosa</b>
+    </div>
+""", unsafe_allow_html=True)
