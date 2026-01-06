@@ -6,7 +6,7 @@ import seaborn as sns
 import os
 import numpy as np
 
-# --- 1. CONFIGURAÇÃO E ESTILO (RESPONSIVO & PROFISSIONAL) ---
+# --- 1. CONFIGURAÇÃO E ESTILO (MOBILE FIX) ---
 st.set_page_config(
     page_title="FIAP - Health Intelligence",
     page_icon="💙",
@@ -14,31 +14,55 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CONFIGURAÇÃO GLOBAL DE GRÁFICOS (FUNDO TRANSPARENTE) ---
+# --- CONFIGURAÇÃO GLOBAL DE GRÁFICOS ---
 sns.set_theme(style="ticks")
 plt.rcParams['figure.facecolor'] = 'none'
 plt.rcParams['axes.facecolor'] = 'none'
 plt.rcParams['savefig.facecolor'] = 'none'
+plt.rcParams['axes.spines.top'] = False
+plt.rcParams['axes.spines.right'] = False
+plt.rcParams['text.color'] = '#2c3e50'     # Força cor do texto nos gráficos
+plt.rcParams['axes.labelcolor'] = '#2c3e50'
+plt.rcParams['xtick.color'] = '#2c3e50'
+plt.rcParams['ytick.color'] = '#2c3e50'
 
-# CSS AVANÇADO
+# CSS SUPER FORTE PARA SOBRESCREVER MODO ESCURO
 st.markdown("""
     <style>
-    /* Fundo Geral */
-    .stApp {background-color: #f4f6f9;}
+    /* Forçar Fundo Claro Global (Ignora Dark Mode do Celular) */
+    [data-testid="stAppViewContainer"] {
+        background-color: #f4f6f9 !important;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #ffffff !important;
+        border-right: 1px solid #e1e4e8;
+    }
     
+    /* Texto Geral do App (Fora dos cards) - Garante contraste */
+    .stMarkdown, .stText, h1, h2, h3, p {
+        color: #2c3e50 !important;
+    }
+
     /* Cards (Container dos Gráficos) */
     .css-card {
-        background-color: white;
+        background-color: white !important;
         padding: 1.5rem;
         border-radius: 12px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         margin-bottom: 1rem;
+        /* TRAVA DE COR: Força texto escuro dentro do card branco */
+        color: #2c3e50 !important; 
     }
     
+    /* Forçar cor preta em todos os elementos dentro do card */
+    .css-card * {
+        color: #2c3e50 !important;
+    }
+
     /* Títulos dos Gráficos */
     .chart-header {
         font-family: 'Segoe UI', sans-serif;
-        color: #2c3e50;
+        color: #2c3e50 !important;
         font-size: 1.1rem;
         font-weight: 700;
         margin-bottom: 0.8rem;
@@ -48,30 +72,39 @@ st.markdown("""
     
     /* Caixas de Insight (Azul Claro) */
     .insight-box {
-        background-color: #eef6fb;
+        background-color: #eef6fb !important;
         border: 1px solid #d6eaf8;
         padding: 15px;
         border-radius: 8px;
         font-size: 0.90rem;
-        color: #2c3e50;
+        color: #2c3e50 !important;
         margin-top: 10px;
         line-height: 1.4;
     }
 
-    /* Destaque Técnico (Amarelo) */
+    /* Destaque Técnico */
     .tech-box {
-        background-color: #fff8e1;
+        background-color: #fff8e1 !important;
         border-left: 5px solid #ffc107;
         padding: 15px;
         border-radius: 5px;
-        color: #5d4037;
+        color: #5d4037 !important;
         font-size: 0.90rem;
+    }
+    
+    /* Métricas (Números Grandes) - Forçar Azul */
+    div[data-testid="stMetricValue"] {
+        color: #3498db !important;
+    }
+    div[data-testid="stMetricLabel"] {
+        color: #7f8c8d !important;
     }
     
     /* Ajustes Mobile */
     @media (max-width: 768px) {
         .stColumns { display: block !important; }
         [data-testid="column"] { width: 100% !important; margin-bottom: 20px; }
+        .css-card { padding: 1rem; }
     }
     </style>
     """, unsafe_allow_html=True)
@@ -99,7 +132,6 @@ mapa_frequencia = {'Não': 'no', 'Às vezes': 'Sometimes', 'Frequentemente': 'Fr
 
 @st.cache_data
 def carregar_dados():
-    # Tenta carregar da pasta organizada, senão tenta na raiz (fallback)
     caminho = "data/Obesity.csv"
     if not os.path.exists(caminho):
         caminho = "Obesity.csv" # Fallback
@@ -116,31 +148,27 @@ def carregar_dados():
         return None
 
 try:
-    # Tenta carregar da pasta organizada, senão tenta na raiz
     model_path = 'models/modelo_obesidade.pkl'
     if not os.path.exists(model_path):
         model_path = 'modelo_obesidade.pkl'
-        
     pipeline = joblib.load(model_path)
 except:
-    st.error("⚠️ ERRO CRÍTICO: Arquivo do modelo não encontrado. Verifique se 'modelo_obesidade.pkl' está na pasta 'models' ou na raiz.")
+    st.error("⚠️ ERRO: Modelo não encontrado. Verifique a pasta 'models'.")
     st.stop()
 
 df = carregar_dados()
 
-# --- FUNÇÃO DE RODAPÉ (LOGOS CENTRALIZADOS) ---
+# --- FUNÇÃO DE RODAPÉ ---
 def render_footer():
     st.markdown("---")
     st.markdown("<br>", unsafe_allow_html=True)
-    
-    # Grid centralizado verticalmente
     c1, c2, c3, c4, c5 = st.columns([1, 2, 2, 2, 1], vertical_alignment="center") 
     
-    # Caminhos das imagens (Assets ou Raiz ou Web)
+    # Função para buscar imagem com fallback
     def get_img_path(name):
         if os.path.exists(f"assets/{name}"): return f"assets/{name}"
         if os.path.exists(name): return name
-        return "https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png" # Backup Online
+        return "https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png"
     
     with c2: st.image(get_img_path("logo1.png"), use_container_width=True)
     with c3: st.image(get_img_path("logo2.png"), use_container_width=True)
@@ -154,7 +182,6 @@ def render_footer():
     """, unsafe_allow_html=True)
 
 # --- 3. SIDEBAR E FILTROS ---
-# Logo Principal
 logo_main = "assets/logo3.png" if os.path.exists("assets/logo3.png") else ("logo3.png" if os.path.exists("logo3.png") else "https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png")
 st.sidebar.image(logo_main, use_container_width=True)
 
@@ -171,7 +198,6 @@ if df is not None:
     f_age = st.sidebar.multiselect("Faixa Etária", df['Faixa_Etaria'].unique().astype(str), default=df['Faixa_Etaria'].unique().astype(str))
     f_trans = st.sidebar.multiselect("Transporte", df['MTRANS'].unique(), default=df['MTRANS'].unique())
     
-    # Tratamento para "Selecionar Tudo" se vazio
     if not f_gen: f_gen = df['Gender'].unique()
     if not f_hist: f_hist = df['family_history'].unique()
     if not f_age: f_age = df['Faixa_Etaria'].unique().astype(str)
@@ -184,7 +210,7 @@ if df is not None:
         (df['MTRANS'].isin(f_trans))
     ]
 else:
-    st.warning("⚠️ Arquivo 'Obesity.csv' não encontrado. Faça o upload para visualizar os dados.")
+    st.warning("⚠️ Arquivo 'Obesity.csv' não encontrado.")
 
 # --- 4. DASHBOARD ANALÍTICO ---
 if menu == "Dashboard Analítico":
@@ -210,7 +236,8 @@ if menu == "Dashboard Analítico":
         # LINHA 1
         c1, c2 = st.columns([2, 1])
         with c1:
-            st.markdown('<div class="chart-header">1. Distribuição Clínica da População</div>', unsafe_allow_html=True)
+            st.markdown('<div class="css-card">', unsafe_allow_html=True) # Container Card Manual
+            st.markdown('<div class="chart-header">1. Distribuição Clínica</div>', unsafe_allow_html=True)
             fig, ax = plt.subplots(figsize=(8, 4))
             contagem = df_filtrado['Obesity_PT'].value_counts().reindex(ordem_obesidade).fillna(0)
             colors = ['#2ecc71', '#27ae60', '#f1c40f', '#f39c12', '#e67e22', '#d35400', '#c0392b']
@@ -218,14 +245,12 @@ if menu == "Dashboard Analítico":
             sns.despine(left=True, bottom=True)
             plt.xticks(rotation=45, ha='right')
             st.pyplot(fig, use_container_width=True)
-            
-            maior_grupo = contagem.idxmax() if not contagem.empty else "N/A"
             st.markdown(f"""<div class="insight-box">
-            <b>Insight de Negócio:</b> O perfil predominante nesta seleção é <b>{maior_grupo}</b>. 
-            Se as barras inferiores (Laranja/Vermelho) dominarem, estamos diante de um grupo com alta sinistralidade e custo médico.
-            </div>""", unsafe_allow_html=True)
+            <b>Insight:</b> O perfil predominante é <b>{contagem.idxmax() if not contagem.empty else 'N/A'}</b>.
+            </div></div>""", unsafe_allow_html=True)
 
         with c2:
+            st.markdown('<div class="css-card">', unsafe_allow_html=True)
             st.markdown('<div class="chart-header">2. Carga Genética</div>', unsafe_allow_html=True)
             fig, ax = plt.subplots()
             fam = df_filtrado['family_history'].value_counts()
@@ -233,15 +258,16 @@ if menu == "Dashboard Analítico":
                 ax.pie(fam, labels=fam.index, autopct='%1.1f%%', colors=['#e74c3c', '#bdc3c7'], startangle=90)
                 st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Hereditariedade:</b> Em grupos de Obesidade Grau III, este gráfico geralmente mostra >85% de "Yes". Isso reforça a necessidade de medicina preventiva familiar.
-            </div>""", unsafe_allow_html=True)
+            <b>Hereditariedade:</b> >80% de histórico positivo em casos graves reforça a necessidade de prevenção familiar.
+            </div></div>""", unsafe_allow_html=True)
 
         st.markdown("---")
         
         # LINHA 2
         c3, c4 = st.columns(2)
         with c3:
-            st.markdown('<div class="chart-header">3. Mapa de Calor: Transporte x Peso</div>', unsafe_allow_html=True)
+            st.markdown('<div class="css-card">', unsafe_allow_html=True)
+            st.markdown('<div class="chart-header">3. Mapa de Calor: Transporte</div>', unsafe_allow_html=True)
             ct = pd.crosstab(df_filtrado['MTRANS'], df_filtrado['Obesity_PT'])
             if not ct.empty:
                 ct_norm = ct.div(ct.sum(axis=1), axis=0)
@@ -251,28 +277,28 @@ if menu == "Dashboard Analítico":
                 plt.xlabel("")
                 st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Mobilidade Ativa:</b>
-            Observe a linha "Automobile". O vermelho intenso nas colunas de Obesidade mostra que o sedentarismo no deslocamento é um fator crítico. Caminhada (Walking) atua como fator de proteção.
-            </div>""", unsafe_allow_html=True)
+            <b>Mobilidade:</b> Vermelho intenso em 'Automobile' nas colunas de obesidade indica sedentarismo crítico.
+            </div></div>""", unsafe_allow_html=True)
 
         with c4:
-            st.markdown('<div class="chart-header">4. Impacto da Tecnologia (Sedentarismo Digital)</div>', unsafe_allow_html=True)
+            st.markdown('<div class="css-card">', unsafe_allow_html=True)
+            st.markdown('<div class="chart-header">4. Impacto da Tecnologia</div>', unsafe_allow_html=True)
             fig, ax = plt.subplots(figsize=(8, 5))
             sns.violinplot(x='TUE', y='Obesity_PT', data=df_filtrado, order=ordem_obesidade, palette="cool", inner="quartile", ax=ax)
-            plt.xlabel("Tempo em Dispositivos (0=Baixo, 2=Alto)")
+            plt.xlabel("Tempo em Dispositivos")
             plt.ylabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Efeito Tela:</b>
-            Note como o formato do violino se desloca para a direita (maior uso) nos grupos de obesidade mórbida. O tempo de tela compete diretamente com o tempo de atividade física.
-            </div>""", unsafe_allow_html=True)
+            <b>Efeito Tela:</b> Maior uso de telas (direita) correlaciona com obesidade mórbida.
+            </div></div>""", unsafe_allow_html=True)
 
         st.markdown("---")
 
         # LINHA 3
         c5, c6 = st.columns(2)
         with c5:
-            st.markdown('<div class="chart-header">5. O Mito do "Comer Pouco" (Snacking)</div>', unsafe_allow_html=True)
+            st.markdown('<div class="css-card">', unsafe_allow_html=True)
+            st.markdown('<div class="chart-header">5. O Mito do "Comer Pouco"</div>', unsafe_allow_html=True)
             ct_caec = pd.crosstab(df_filtrado['Obesity_PT'], df_filtrado['CAEC'])
             fig, ax = plt.subplots(figsize=(8, 5))
             sns.heatmap(ct_caec, cmap="Blues", annot=True, fmt="d", cbar=False, ax=ax)
@@ -280,28 +306,28 @@ if menu == "Dashboard Analítico":
             plt.ylabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Padrão Oculto:</b>
-            O problema não é só quem come "Sempre" (Always), mas a grande massa que come "Às Vezes" (Sometimes) sem planejamento. A falta de rotina alimentar é o maior ofensor invisível.
-            </div>""", unsafe_allow_html=True)
+            <b>Snacking:</b> O maior vilão é comer "Às vezes" (Sometimes) sem planejamento, não apenas "Sempre".
+            </div></div>""", unsafe_allow_html=True)
 
         with c6:
-            st.markdown('<div class="chart-header">6. Evolução por Faixa Etária</div>', unsafe_allow_html=True)
+            st.markdown('<div class="css-card">', unsafe_allow_html=True)
+            st.markdown('<div class="chart-header">6. Evolução por Idade</div>', unsafe_allow_html=True)
             fig, ax = plt.subplots(figsize=(8, 5))
             sns.boxplot(x='Age', y='Obesity_PT', data=df_filtrado, order=ordem_obesidade, palette="Spectral_r", ax=ax)
-            plt.xlabel("Idade (anos)")
+            plt.xlabel("Idade")
             plt.ylabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Progressão:</b>
-            Se a mediana (linha preta) sobe nos grupos de obesidade, confirma o acúmulo de peso com a idade. Outliers jovens em "Obesidade III" indicam necessidade de intervenção pediátrica imediata.
-            </div>""", unsafe_allow_html=True)
+            <b>Progressão:</b> Se a mediana (linha) sobe nos grupos obesos, confirma acúmulo de peso com a idade.
+            </div></div>""", unsafe_allow_html=True)
             
         st.markdown("---")
         
-        # LINHA 4 (MINI GRÁFICOS COM EXPLICAÇÃO PADRONIZADA)
+        # LINHA 4
         c7, c8, c9 = st.columns(3)
         with c7:
-            st.markdown('<div class="chart-header">7. Hidratação (Litros)</div>', unsafe_allow_html=True)
+            st.markdown('<div class="css-card">', unsafe_allow_html=True)
+            st.markdown('<div class="chart-header">7. Hidratação</div>', unsafe_allow_html=True)
             fig, ax = plt.subplots()
             sns.barplot(x='Obesity_PT', y='CH2O', data=df_filtrado, order=ordem_obesidade, palette="Blues", ax=ax, errorbar=None)
             plt.xticks(rotation=90)
@@ -309,10 +335,11 @@ if menu == "Dashboard Analítico":
             plt.ylabel("Litros/Dia")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Metabolismo:</b> A correlação é clara: pacientes com Obesidade Mórbida bebem menos água. A hidratação é essencial para a queima calórica basal.
-            </div>""", unsafe_allow_html=True)
+            <b>Metabolismo:</b> Consumo de água cai drasticamente nos grupos de risco.
+            </div></div>""", unsafe_allow_html=True)
 
         with c8:
+            st.markdown('<div class="css-card">', unsafe_allow_html=True)
             st.markdown('<div class="chart-header">8. Tabagismo</div>', unsafe_allow_html=True)
             smoke_ct = pd.crosstab(df_filtrado['Obesity_PT'], df_filtrado['SMOKE'], normalize='index')
             fig, ax = plt.subplots()
@@ -322,11 +349,11 @@ if menu == "Dashboard Analítico":
             plt.xlabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Fator Comorbidade:</b>
-            Embora fumantes às vezes tenham peso menor, a combinação <b>Obesidade + Cigarro</b> multiplica o risco cardiovascular. Atenção redobrada na triagem.
-            </div>""", unsafe_allow_html=True)
+            <b>Risco:</b> Obesidade + Cigarro multiplica risco cardiovascular.
+            </div></div>""", unsafe_allow_html=True)
             
         with c9:
+            st.markdown('<div class="css-card">', unsafe_allow_html=True)
             st.markdown('<div class="chart-header">9. Freq. Refeições</div>', unsafe_allow_html=True)
             fig, ax = plt.subplots()
             sns.pointplot(x='Obesity_PT', y='NCP', data=df_filtrado, order=ordem_obesidade, color="#e74c3c", ax=ax)
@@ -335,64 +362,56 @@ if menu == "Dashboard Analítico":
             plt.ylabel("Refeições/Dia")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Rotina Alimentar:</b>
-            Um número baixo de refeições (1 ou 2) muitas vezes indica jejuns prolongados seguidos de compulsão alimentar, padrão comum em alto IMC.
-            </div>""", unsafe_allow_html=True)
+            <b>Rotina:</b> Poucas refeições (jejum) seguido de compulsão é comum.
+            </div></div>""", unsafe_allow_html=True)
 
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
     
     render_footer()
 
-# --- 5. INSIGHTS ESTRATÉGICOS (COMPLETO) ---
+# --- 5. INSIGHTS ESTRATÉGICOS ---
 elif menu == "Insights Estratégicos":
-    st.title("Relatório Executivo de Inteligência de Dados")
+    st.title("Relatório Executivo")
     st.markdown("Análise profunda, plano de ação e auditoria técnica do modelo.")
     st.markdown("---")
 
     col_txt1, col_txt2 = st.columns(2)
 
     with col_txt1:
-        st.markdown("### 🔍 Diagnóstico de Negócio (5 Pilares)")
+        st.markdown('<div class="css-card">', unsafe_allow_html=True)
+        st.markdown("### 🔍 Diagnóstico (5 Pilares)")
         st.markdown("""
-        **1. O Fator Hereditário (Genética):**
-        A análise de dados é conclusiva: o histórico familiar é o preditor mais forte de obesidade futura. Em nossa base, mais de **85%** dos casos de Obesidade Grau III possuem parentes diretos com a condição. Isso transforma a obesidade de uma "falha individual" para um "contexto familiar".
+        **1. Hereditariedade:** >85% dos casos graves têm histórico familiar positivo.
         
-        **2. Mobilidade e Urbanismo:**
-        Identificamos uma correlação quase linear entre o uso de **Automóveis** e o aumento do IMC. Usuários de transporte público (que caminham até pontos/estações) têm índices de obesidade significativamente menores, provando que a "atividade física incidental" é crucial.
+        **2. Mobilidade:** Uso de carro correlaciona com alto IMC; transporte ativo protege.
         
-        **3. A 'Zona Cinzenta' da Alimentação:**
-        O perigo não está apenas em quem come "Sempre" entre refeições, mas no grupo "Sometimes" (Às vezes). A falta de rotina alimentar (beliscar sem planejamento) é o maior contribuidor calórico oculto nos dados.
+        **3. Alimentação:** O perigo é comer "Às vezes" entre refeições (falta de rotina).
         
-        **4. Desidratação Crônica:**
-        Pacientes obesos relatam consumo de água sistematicamente menor (< 1.5L) que pacientes saudáveis (> 2.0L). A água atua na saciedade e no metabolismo basal.
+        **4. Hidratação:** Obesos bebem <1.5L de água/dia.
         
-        **5. Sedentarismo Digital (Tech-Neck):**
-        O tempo de uso de tecnologia (TUE) compete diretamente com a atividade física. Pacientes com alto TUE raramente possuem alto FAF (Frequência de Atividade Física), criando um ciclo vicioso.
+        **5. Tecnologia:** Tempo de tela compete com atividade física.
         """)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with col_txt2:
-        st.markdown("### 🚀 Plano de Ação (Propostas)")
+        st.markdown('<div class="css-card">', unsafe_allow_html=True)
+        st.markdown("### 🚀 Plano de Ação")
         st.success("""
-        **A. Protocolo de Triagem Genética na Admissão**
-        * **Ação:** Incluir pergunta obrigatória sobre histórico familiar na triagem.
-        * **Impacto:** Se positivo, o paciente entra em uma "Trilha Preventiva" (nutrição + psicologia) antes mesmo de apresentar sintomas graves.
+        **A. Triagem Genética:** Pergunta obrigatória sobre família na admissão.
         
-        **B. Programa 'Hospital em Movimento'**
-        * **Ação:** Gamificação para funcionários e pacientes.
-        * **Mecânica:** Pontos por passos dados ou troca do carro por bicicleta/transporte público. Prêmios em descontos na farmácia ou dias de folga (para funcionários).
+        **B. Gamificação:** Prêmios por passos ou uso de bike.
         
-        **C. Reeducação do 'Belisco'**
-        * **Ação:** Focar a nutrição não em proibir, mas em *estruturar* os lanches intermediários. Substituir o "belisco inconsciente" por "lanche proteico programado".
+        **C. Reeducação:** Substituir belisco por lanche programado.
         
-        **D. Campanha 'Hidratação 2.0'**
-        * **Ação:** Distribuição de garrafas graduadas inteligentes e instalação de bebedouros com contadores visuais. Meta simples: 2.0L/dia para todos.
+        **D. Hidratação:** Meta de 2.0L/dia com campanhas visuais.
         """)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("---")
     
-    # --- AUDITORIA TÉCNICA DO MODELO ---
-    st.markdown("### 🤖 Auditoria Técnica do Modelo de IA")
+    # --- AUDITORIA TÉCNICA ---
+    st.markdown("### 🤖 Auditoria Técnica do Modelo")
     
     c_tec1, c_tec2 = st.columns([1, 2])
     
@@ -404,17 +423,16 @@ elif menu == "Insights Estratégicos":
     with c_tec2:
         st.markdown("""
         <div class="tech-box">
-        <b>Por que este modelo é robusto?</b><br>
-        1. <b>Algoritmo Escolhido:</b> Random Forest Classifier (Floresta Aleatória).<br>
-        2. <b>Justificativa Técnica:</b> Diferente de modelos lineares (como Regressão Logística), o Random Forest consegue capturar <b>relações não-lineares complexas</b>. Exemplo: "Comer vegetais" (FCVC) geralmente é bom, mas o modelo aprendeu que "Comer vegetais + Comer muito entre refeições + Não beber água" ainda resulta em obesidade. Uma regressão simples falharia em ver essa interação.<br>
-        3. <b>Segurança Clínica (Recall):</b> O modelo foi otimizado para não cometer falsos negativos em casos graves. O Recall de 100% na Obesidade Tipo III significa que a IA <b>nunca</b> classificou um paciente mórbido como saudável, garantindo segurança na triagem médica.
-        4. <b>Engenharia de Atributos:</b> A alta performance não é mágica. Ela provém do tratamento prévio dos dados, onde transformamos variáveis categóricas (texto) em numéricas e normalizamos as escalas de idade e peso.
+        <b>Robustez do Random Forest:</b><br>
+        1. Captura relações não-lineares (ex: Vegetais x Sedentarismo).<br>
+        2. <b>Recall de 100%</b> em casos graves garante segurança na triagem.<br>
+        3. Alta performance via engenharia de atributos (conversão de categóricos).
         </div>
         """, unsafe_allow_html=True)
     
     render_footer()
 
-# --- 6. SIMULADOR (FUNCIONAL) ---
+# --- 6. SIMULADOR ---
 elif menu == "Simulador de Risco":
     st.title("Simulador de Risco Clínico")
     st.markdown("Preencha a anamnese para obter a predição do modelo em tempo real.")
