@@ -1,76 +1,92 @@
 # TECH CHALLENGE FASE 4 - HEALTH ANALYTICS & PREDICTION
 
-Este projeto foi desenvolvido como parte do Tech Challenge da FIAP (Pós-Tech em Data Analytics). O objetivo é apoiar hospitais e clínicas na triagem inteligente de pacientes, predizendo níveis de obesidade com base em hábitos de vida e históricos genéticos.
+**Curso:** Pós-Tech Data Analytics (FIAP)
+**Projeto:** Sistema Preditivo de Obesidade e Dashboard Analítico
 
 ---
 
-## ACESSO AS APLICACOES
+## 📋 SOBRE O PROJETO
 
-### 1. Simulador de Risco (Streamlit)
-Aplicação interativa para médicos realizarem a predição em tempo real durante a consulta.
-Link: https://obesity-level-predictor.streamlit.app/
+Este projeto simula um desafio real de **Data Science em contexto hospitalar**. O objetivo foi desenvolver um sistema inteligente para auxiliar a equipe médica na triagem e diagnóstico precoce de obesidade, utilizando dados históricos de hábitos de vida e condições genéticas.
 
-### 2. Dashboard Executivo (Looker Studio)
-Painel de BI desenvolvido para a diretoria do hospital acompanhar indicadores macro e demografia.
-Link: https://lookerstudio.google.com/u/0/reporting/4d0fd9b6-3102-4077-a1ef-bff6fa6de897/page/3VGkF
+O entregável consiste em duas frentes:
+1.  **Visão Diagnóstica (Operacional):** Um modelo de Machine Learning em produção para classificar pacientes em tempo real.
+2.  **Visão Analítica (Estratégica):** Um dashboard para gestores hospitalares identificarem padrões epidemiológicos.
 
 ---
 
-## ESTRUTURA DO REPOSITORIO
+## 🔗 LINKS DE ACESSO (ENTREGAS OBRIGATÓRIAS)
 
-Abaixo, a descrição da organização dos arquivos neste projeto:
-
-* app.py: Código fonte da aplicação Web (Streamlit). Contém o Front-end e a lógica de inferência.
-* models/modelo_obesidade.pkl: Arquivo binário contendo o algoritmo Random Forest treinado.
-* data/Obesity.csv: Dataset original utilizado para treino e para os gráficos do dashboard no app.
-* requirements.txt: Lista de bibliotecas necessárias para a execução do projeto.
-
----
-
-## SOBRE O MODELO DE MACHINE LEARNING
-
-Utilizamos um algoritmo de Random Forest Classifier devido à sua robustez em lidar com dados não-lineares e alta capacidade de generalização.
-
-* Acurácia Global (Teste): 93.62%
-* Recall em Casos Críticos (Obesidade Mórbida): 100%
-* Precision (Peso Normal): 94.0%
-
-A escolha deste modelo se justifica pela capacidade de interpretar interações complexas entre variáveis comportamentais (como alimentação desregrada e sedentarismo digital) que modelos lineares tradicionais não capturam com a mesma eficácia.
+| Aplicação | Descrição | Link de Acesso |
+| :--- | :--- | :--- |
+| **Simulador de Risco** | Aplicação Web (Streamlit) com o modelo preditivo em produção. | [Acessar Aplicação Streamlit](https://obesity-level-predictor.streamlit.app/) |
+| **Dashboard Analítico** | Painel gerencial (Looker Studio) com KPIs e insights de negócio. | [Acessar Dashboard Looker](https://lookerstudio.google.com/u/0/reporting/4d0fd9b6-3102-4077-a1ef-bff6fa6de897/page/3VGkF) |
+| **Vídeo de Apresentação** | Pitch explicando a estratégia, o modelo e a visão de negócio. | *[INSIRA O LINK DO YOUTUBE/DRIVE AQUI]* |
 
 ---
 
-## COMO INTERPRETAR OS RESULTADOS
+## 📂 ESTRUTURA DO REPOSITÓRIO
 
-### No Simulador (App)
-O sistema foca na ação imediata de triagem.
-1. Preencha os dados da anamnese (biometria e hábitos).
-2. O modelo classifica o paciente entre "Peso Normal", "Sobrepeso" ou "Graus de Obesidade".
-3. O sistema sugere intervenções baseadas no grau de risco identificado.
+O projeto segue uma arquitetura organizada para facilitar a avaliação técnica:
 
-### No Dashboard (Looker Studio)
-O painel foca na visão gerencial de longo prazo.
-* Mapa de Calor: Identifica correlações entre meios de transporte e obesidade.
-* Indicadores: Monitoramento da taxa global de sedentarismo e porcentagem de pacientes em risco cardiovascular.
+* **`app.py`**: Código fonte da aplicação Streamlit (Front-end e Back-end).
+* **`data/`**: Contém o dataset `Obesity.csv` utilizado para treino e visualização.
+* **`models/`**: Contém o arquivo binário `modelo_obesidade.pkl` (modelo treinado e serializado).
+* **`assets/`**: Imagens e logotipos utilizados na interface gráfica.
+* **`notebooks/`**: (Opcional) Contém o Jupyter Notebook com a análise exploratória (EDA), Feature Engineering e testes de algoritmos.
+* **`requirements.txt`**: Lista de dependências Python.
 
 ---
 
-## INSTALACAO E EXECUCAO LOCAL
+## 🧠 PERFORMANCE DO MODELO (MACHINE LEARNING)
 
-Para executar este projeto em ambiente local:
+Para atender ao requisito de **acurácia superior a 75%**, desenvolvemos e comparamos diversos algoritmos. O modelo escolhido foi o **Random Forest Classifier**.
 
-1. Clone o repositório.
-2. Instale as dependências listadas no arquivo requirements.txt.
-3. Execute o comando: streamlit run app.py
+### Métricas de Teste (Dados não vistos)
+* **Acurácia Global:** 93.62% (Superando a meta de 75%)
+* **Recall (Obesidade Mórbida):** 100%
+* **Precision (Peso Normal):** 94.0%
+
+### Justificativa Técnica
+O Random Forest foi selecionado por sua robustez em lidar com dados não-lineares e interações complexas entre variáveis (ex: a relação entre *Consumo de Vegetais* e *Sedentarismo*). Implementamos **Feature Engineering** calculando interações entre peso/altura e convertendo variáveis categóricas para numéricas, o que elevou a precisão do modelo.
 
 ---
 
-## AUTORES
+## 📊 INSIGHTS DE NEGÓCIO (VISÃO ANALÍTICA)
 
-Projeto desenvolvido pelo Grupo - FIAP:
+Conforme solicitado no desafio, a análise de dados gerou insights acionáveis para a equipe médica:
 
-* Bianca Neves
-* Erica Silva
-* Diogo Oliveira
-* Gabrielle Barbosa
+1.  **Fator Genético:** Histórico familiar é o preditor mais forte (>85% de correlação com casos graves).
+2.  **Mobilidade Urbana:** O uso de transporte passivo (carro) está diretamente ligado à Obesidade Grau III, enquanto transporte ativo (caminhada/transporte público) atua como fator de proteção.
+3.  **Hidratação:** Identificamos um padrão de baixo consumo de água (< 1.5L/dia) em pacientes de alto risco.
+4.  **Comportamento Alimentar:** O hábito de "beliscar" sem planejamento (comer entre refeições "Às vezes") mostrou-se mais nocivo do que comer frequentemente, devido à falta de rotina metabólica.
 
+---
+
+## 🛠️ COMO EXECUTAR LOCALMENTE
+
+Para rodar a aplicação em sua máquina:
+
+1.  Clone este repositório.
+2.  Instale as bibliotecas necessárias:
+    ```bash
+    pip install -r requirements.txt
+    ```
+3.  Execute o Streamlit:
+    ```bash
+    streamlit run app.py
+    ```
+
+---
+
+## 👥 AUTORES
+
+**Grupo - FIAP Pós-Tech**
+
+* **Bianca Neves**
+* **Erica Silva**
+* **Diogo Oliveira**
+* **Gabrielle Barbosa**
+
+---
 © 2025 - Tech Challenge Fase 4
