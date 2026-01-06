@@ -5,7 +5,7 @@
 
 ---
 
-## 📋 SOBRE O PROJETO
+##  SOBRE O PROJETO
 
 Este projeto simula um desafio real de **Data Science em contexto hospitalar**. O objetivo foi desenvolver um sistema inteligente para auxiliar a equipe médica na triagem e diagnóstico precoce de obesidade, utilizando dados históricos de hábitos de vida e condições genéticas.
 
@@ -15,17 +15,17 @@ O entregável consiste em duas frentes:
 
 ---
 
-## 🔗 LINKS DE ACESSO (ENTREGAS OBRIGATÓRIAS)
+##  LINKS DE ACESSO (ENTREGAS OBRIGATÓRIAS)
 
 | Aplicação | Descrição | Link de Acesso |
 | :--- | :--- | :--- |
 | **Simulador de Risco** | Aplicação Web (Streamlit) com o modelo preditivo em produção. | [Acessar Aplicação Streamlit](https://obesity-level-predictor.streamlit.app/) |
 | **Dashboard Analítico** | Painel gerencial (Looker Studio) com KPIs e insights de negócio. | [Acessar Dashboard Looker](https://lookerstudio.google.com/u/0/reporting/4d0fd9b6-3102-4077-a1ef-bff6fa6de897/page/3VGkF) |
-| **Vídeo de Apresentação** | Pitch explicando a estratégia, o modelo e a visão de negócio. | *[INSIRA O LINK DO YOUTUBE/DRIVE AQUI]* |
+| **Vídeo de Apresentação** | Pitch explicando a estratégia, o modelo e a visão de negócio. | *LINK DO YOUTUBE* |
 
 ---
 
-## 📂 ESTRUTURA DO REPOSITÓRIO
+##  ESTRUTURA DO REPOSITÓRIO
 
 O projeto segue uma arquitetura organizada para facilitar a avaliação técnica:
 
@@ -33,12 +33,12 @@ O projeto segue uma arquitetura organizada para facilitar a avaliação técnica
 * **`data/`**: Contém o dataset `Obesity.csv` utilizado para treino e visualização.
 * **`models/`**: Contém o arquivo binário `modelo_obesidade.pkl` (modelo treinado e serializado).
 * **`assets/`**: Imagens e logotipos utilizados na interface gráfica.
-* **`notebooks/`**: (Opcional) Contém o Jupyter Notebook com a análise exploratória (EDA), Feature Engineering e testes de algoritmos.
+* **`notebooks/`**:  Contém o Jupyter Notebook com a análise/treino ML, Feature Engineering e testes de algoritmos.
 * **`requirements.txt`**: Lista de dependências Python.
 
 ---
 
-## 🧠 PERFORMANCE DO MODELO (MACHINE LEARNING)
+##  PERFORMANCE DO MODELO (MACHINE LEARNING)
 
 Para atender ao requisito de **acurácia superior a 75%**, desenvolvemos e comparamos diversos algoritmos. O modelo escolhido foi o **Random Forest Classifier**.
 
@@ -52,7 +52,7 @@ O Random Forest foi selecionado por sua robustez em lidar com dados não-lineare
 
 ---
 
-## 📊 INSIGHTS DE NEGÓCIO (VISÃO ANALÍTICA)
+##  INSIGHTS DE NEGÓCIO (VISÃO ANALÍTICA)
 
 Conforme solicitado no desafio, a análise de dados gerou insights acionáveis para a equipe médica:
 
@@ -63,7 +63,7 @@ Conforme solicitado no desafio, a análise de dados gerou insights acionáveis p
 
 ---
 
-## 🛠️ COMO EXECUTAR LOCALMENTE
+##  COMO EXECUTAR LOCALMENTE
 
 Para rodar a aplicação em sua máquina:
 
@@ -79,7 +79,7 @@ Para rodar a aplicação em sua máquina:
 
 ---
 
-## 👥 AUTORES
+##  AUTORES
 
 **Grupo - FIAP Pós-Tech**
 
