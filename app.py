@@ -15,8 +15,7 @@ st.set_page_config(
 )
 
 # --- CONFIGURAÇÃO GLOBAL DE GRÁFICOS (FUNDO TRANSPARENTE) ---
-# Isso garante que o gráfico pegue a cor do fundo do site/card
-sns.set_theme(style="ticks") # Estilo mais limpo, sem o grid cinza pesado
+sns.set_theme(style="ticks")
 plt.rcParams['figure.facecolor'] = 'none'
 plt.rcParams['axes.facecolor'] = 'none'
 plt.rcParams['savefig.facecolor'] = 'none'
@@ -53,10 +52,10 @@ st.markdown("""
         border: 1px solid #d6eaf8;
         padding: 15px;
         border-radius: 8px;
-        font-size: 0.95rem;
+        font-size: 0.90rem; /* Fonte levemente menor para caber em colunas */
         color: #2c3e50;
         margin-top: 10px;
-        line-height: 1.5;
+        line-height: 1.4;
     }
 
     /* Destaque Técnico */
@@ -130,7 +129,6 @@ def render_footer():
     st.markdown("---")
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Grid centralizado verticalmente
     c1, c2, c3, c4, c5 = st.columns([1, 2, 2, 2, 1], vertical_alignment="center") 
     
     backup_logo = "https://logodownload.org/wp-content/uploads/2017/09/fiap-logo.png"
@@ -172,7 +170,6 @@ if df is not None:
     f_trans = st.sidebar.multiselect("Transporte", df['MTRANS'].unique(), default=df['MTRANS'].unique())
     f_ativ = st.sidebar.slider("Nível Ativ. Física (FAF)", 0.0, 3.0, (0.0, 3.0))
     
-    # Tratamento para "Selecionar Tudo" se vazio
     if not f_gen: f_gen = df['Gender'].unique()
     if not f_hist: f_hist = df['family_history'].unique()
     if not f_age: f_age = df['Faixa_Etaria'].unique().astype(str)
@@ -217,13 +214,13 @@ if menu == "Dashboard Analítico":
             colors = ['#2ecc71', '#27ae60', '#f1c40f', '#f39c12', '#e67e22', '#d35400', '#c0392b']
             sns.barplot(x=contagem.values, y=contagem.index, palette=colors, ax=ax)
             sns.despine(left=True, bottom=True)
-            plt.xticks(rotation=45, ha='right') # Ajuste de rotação para mobile
+            plt.xticks(rotation=45, ha='right')
             st.pyplot(fig, use_container_width=True)
             
             maior_grupo = contagem.idxmax()
             st.markdown(f"""<div class="insight-box">
             <b>Insight de Negócio:</b> O perfil predominante nesta seleção é <b>{maior_grupo}</b>. 
-            Observe a "cauda longa" vermelha no gráfico. Se as barras inferiores (Obesidade II e III) somadas ultrapassarem 20%, indica uma carteira de pacientes de altíssimo custo operacional e risco de comorbidades (diabetes, hipertensão).
+            Se as barras inferiores (Laranja/Vermelho) dominarem, estamos diante de um grupo com alta sinistralidade e custo médico.
             </div>""", unsafe_allow_html=True)
 
         with c2:
@@ -233,7 +230,7 @@ if menu == "Dashboard Analítico":
             ax.pie(fam, labels=fam.index, autopct='%1.1f%%', colors=['#e74c3c', '#bdc3c7'], startangle=90)
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Análise:</b> Em grupos de alta obesidade, este gráfico tende a ser >80% "Yes". Isso valida a necessidade de exames genéticos preventivos.
+            <b>Hereditariedade:</b> Em grupos de Obesidade Grau III, este gráfico geralmente mostra >85% de "Yes". Isso reforça a necessidade de medicina preventiva familiar.
             </div>""", unsafe_allow_html=True)
 
         st.markdown("---")
@@ -250,8 +247,8 @@ if menu == "Dashboard Analítico":
             plt.xlabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Interpretação Estratégica:</b>
-            As células vermelhas mostram onde o risco se concentra. Note que o uso de <b>Carro (Automobile)</b> tem correlação direta com Obesidade Mórbida, enquanto <b>Caminhada e Bicicleta</b> são "vacinas" naturais contra o ganho de peso severo.
+            <b>Mobilidade Ativa:</b>
+            Observe a linha "Automobile". O vermelho intenso nas colunas de Obesidade mostra que o sedentarismo no deslocamento é um fator crítico. Caminhada (Walking) atua como fator de proteção.
             </div>""", unsafe_allow_html=True)
 
         with c4:
@@ -262,8 +259,8 @@ if menu == "Dashboard Analítico":
             plt.ylabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Interpretação:</b>
-            A "barriga" do violino indica onde a maioria dos pacientes se concentra. Em graus severos de obesidade, a massa se desloca para a direita (maior uso de telas), confirmando que o tempo de tela compete com o tempo de exercício.
+            <b>Efeito Tela:</b>
+            Note como o formato do violino se desloca para a direita (maior uso) nos grupos de obesidade mórbida. O tempo de tela compete diretamente com o tempo de atividade física.
             </div>""", unsafe_allow_html=True)
 
         st.markdown("---")
@@ -279,8 +276,8 @@ if menu == "Dashboard Analítico":
             plt.ylabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Análise Comportamental:</b>
-            Muitos pacientes obesos relatam comer entre refeições apenas "Às Vezes" (Sometimes), e não "Sempre". Isso derruba o mito de que o obeso come o tempo todo; na verdade, é a <b>falta de planejamento alimentar</b> (beliscar aleatoriamente) que gera o superávit calórico invisível.
+            <b>Padrão Oculto:</b>
+            O problema não é só quem come "Sempre" (Always), mas a grande massa que come "Às Vezes" (Sometimes) sem planejamento. A falta de rotina alimentar é o maior ofensor invisível.
             </div>""", unsafe_allow_html=True)
 
         with c6:
@@ -291,13 +288,13 @@ if menu == "Dashboard Analítico":
             plt.ylabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Análise Cronológica:</b>
-            Observe a mediana (linha preta). Se ela sobe nos níveis mais altos de obesidade, confirma que o peso é cumulativo com a idade. Se houver outliers jovens em "Obesidade III", é um alerta vermelho para intervenção pediátrica/juvenil imediata.
+            <b>Progressão:</b>
+            Se a mediana (linha preta) sobe nos grupos de obesidade, confirma o acúmulo de peso com a idade. Outliers jovens em "Obesidade III" indicam necessidade de intervenção pediátrica imediata.
             </div>""", unsafe_allow_html=True)
             
         st.markdown("---")
         
-        # LINHA 4 (MINI GRÁFICOS)
+        # LINHA 4 (MINI GRÁFICOS COM EXPLICAÇÃO)
         c7, c8, c9 = st.columns(3)
         with c7:
             st.markdown('<div class="chart-header">7. Hidratação (Litros)</div>', unsafe_allow_html=True)
@@ -305,9 +302,11 @@ if menu == "Dashboard Analítico":
             sns.barplot(x='Obesity_PT', y='CH2O', data=df_filtrado, order=ordem_obesidade, palette="Blues", ax=ax, errorbar=None)
             plt.xticks(rotation=90)
             plt.xlabel("")
-            plt.ylabel("Litros")
+            plt.ylabel("Litros/Dia")
             st.pyplot(fig, use_container_width=True)
-            st.caption("Consumo médio cai drasticamente nos grupos de risco.")
+            st.markdown("""<div class="insight-box">
+            <b>Metabolismo:</b> A correlação é clara: pacientes com Obesidade Mórbida bebem menos água. A hidratação é essencial para a queima calórica basal.
+            </div>""", unsafe_allow_html=True)
 
         with c8:
             st.markdown('<div class="chart-header">8. Tabagismo</div>', unsafe_allow_html=True)
@@ -318,17 +317,23 @@ if menu == "Dashboard Analítico":
             plt.xticks(rotation=90)
             plt.xlabel("")
             st.pyplot(fig, use_container_width=True)
-            st.caption("Fumantes vs Não Fumantes por categoria.")
+            st.markdown("""<div class="insight-box">
+            <b>Fator Comorbidade:</b>
+            Embora fumantes às vezes tenham peso menor, a combinação <b>Obesidade + Cigarro</b> multiplica o risco cardiovascular. Atenção redobrada.
+            </div>""", unsafe_allow_html=True)
             
         with c9:
-            st.markdown('<div class="chart-header">9. Frequência Refeições</div>', unsafe_allow_html=True)
+            st.markdown('<div class="chart-header">9. Freq. Refeições</div>', unsafe_allow_html=True)
             fig, ax = plt.subplots()
             sns.pointplot(x='Obesity_PT', y='NCP', data=df_filtrado, order=ordem_obesidade, color="#e74c3c", ax=ax)
             plt.xticks(rotation=90)
             plt.xlabel("")
             plt.ylabel("Refeições/Dia")
             st.pyplot(fig, use_container_width=True)
-            st.caption("Número de refeições principais diárias.")
+            st.markdown("""<div class="insight-box">
+            <b>Rotina:</b>
+            Um número baixo de refeições (1 ou 2) muitas vezes indica jejuns prolongados seguidos de compulsão, padrão comum em alto IMC.
+            </div>""", unsafe_allow_html=True)
 
     else:
         st.warning("⚠️ Nenhum dado disponível.")
@@ -382,7 +387,7 @@ elif menu == "Insights Estratégicos":
 
     st.markdown("---")
     
-    # --- AUDITORIA TÉCNICA DO MODELO (O QUE O USUÁRIO PEDIU) ---
+    # --- AUDITORIA TÉCNICA DO MODELO ---
     st.markdown("### 🤖 Auditoria Técnica do Modelo de IA")
     
     c_tec1, c_tec2 = st.columns([1, 2])
