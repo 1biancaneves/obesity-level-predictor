@@ -26,7 +26,7 @@ plt.rcParams['axes.labelcolor'] = '#2c3e50'
 plt.rcParams['xtick.color'] = '#2c3e50'
 plt.rcParams['ytick.color'] = '#2c3e50'
 
-# CSS (CORRIGIDO PARA NÃO SUMIR COM TÍTULOS)
+# CSS (CORRIGIDO PARA VISUAL + CONTEÚDO)
 st.markdown("""
     <style>
     /* Fundo e Cores Gerais */
@@ -36,7 +36,7 @@ st.markdown("""
     /* Força cor escura em todos os textos para leitura */
     .stMarkdown, .stText, h1, h2, h3, h4, p, li, span, label { color: #2c3e50 !important; }
     
-    /* Estilo dos Títulos dos Gráficos (Sem sumir) */
+    /* Estilo dos Títulos dos Gráficos */
     .custom-header {
         font-family: 'Segoe UI', sans-serif;
         color: #2c3e50 !important;
@@ -48,7 +48,7 @@ st.markdown("""
         padding-left: 10px;
     }
     
-    /* Caixas de Insight */
+    /* Caixas de Insight (Textos Detalhados) */
     .insight-box {
         background-color: #eef6fb !important;
         border: 1px solid #d6eaf8;
@@ -58,7 +58,7 @@ st.markdown("""
         color: #2c3e50 !important;
         margin-top: 5px;
         margin-bottom: 20px;
-        line-height: 1.4;
+        line-height: 1.5; /* Melhor leitura */
     }
 
     /* Destaque Técnico */
@@ -87,7 +87,7 @@ st.markdown("""
 
 # --- 2. DEFINIÇÕES E FUNÇÕES ---
 
-# FUNÇÃO QUE FALTAVA (Necessária para o modelo)
+# FUNÇÃO ESSENCIAL PARA O MODELO
 def arredondar_valores(X_in):
     try:
         X_out = X_in.copy()
@@ -183,7 +183,7 @@ if df is not None:
         (df['MTRANS'].isin(f_trans))
     ]
 
-# --- 4. DASHBOARD ---
+# --- 4. DASHBOARD (COM TEXTOS DETALHADOS) ---
 if menu == "Dashboard Analítico":
     st.title("Painel de Inteligência Médica")
     st.markdown("Análise multifatorial de riscos baseada em dados reais.")
@@ -213,8 +213,11 @@ if menu == "Dashboard Analítico":
             sns.despine(left=True, bottom=True)
             plt.xticks(rotation=45, ha='right')
             st.pyplot(fig, use_container_width=True)
+            
+            maior_grupo = contagem.idxmax() if not contagem.empty else "N/A"
             st.markdown(f"""<div class="insight-box">
-            <b>Insight:</b> O perfil predominante é <b>{contagem.idxmax() if not contagem.empty else 'N/A'}</b>.
+            <b>Insight de Negócio:</b> O perfil predominante nesta seleção é <b>{maior_grupo}</b>. 
+            Observe a "cauda longa" vermelha no gráfico. Se as barras inferiores (Laranja/Vermelho) dominarem e ultrapassarem 20%, isso indica uma carteira de pacientes de altíssimo custo operacional e risco iminente de comorbidades (diabetes, hipertensão).
             </div>""", unsafe_allow_html=True)
 
         with c2:
@@ -225,7 +228,7 @@ if menu == "Dashboard Analítico":
                 ax.pie(fam, labels=fam.index, autopct='%1.1f%%', colors=['#e74c3c', '#bdc3c7'], startangle=90)
                 st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Hereditariedade:</b> >80% de histórico positivo em casos graves.
+            <b>Fator Hereditário:</b> A análise mostra que em grupos de Obesidade Grau III, este gráfico tende a mostrar >85% de histórico positivo ("Yes"). Isso valida estatisticamente a necessidade de exames genéticos preventivos na triagem.
             </div>""", unsafe_allow_html=True)
 
         st.markdown("---")
@@ -242,7 +245,8 @@ if menu == "Dashboard Analítico":
                 plt.xlabel("")
                 st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Mobilidade:</b> Vermelho intenso em 'Automobile' indica sedentarismo crítico.
+            <b>Impacto da Mobilidade:</b>
+            Analise a linha "Automobile". O vermelho intenso nas colunas de Obesidade Grau II e III comprova que o transporte passivo é um vetor de risco. Por outro lado, "Walking" e "Bike" atuam como fatores de proteção natural.
             </div>""", unsafe_allow_html=True)
 
         with c4:
@@ -253,7 +257,8 @@ if menu == "Dashboard Analítico":
             plt.ylabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Efeito Tela:</b> Maior uso de telas correlaciona com obesidade mórbida.
+            <b>Sedentarismo Digital:</b>
+            A "barriga" do violino se desloca para a direita (maior uso de telas) conforme a gravidade da obesidade aumenta. O tempo de tela compete diretamente com o tempo disponível para atividade física (FAF).
             </div>""", unsafe_allow_html=True)
 
         st.markdown("---")
@@ -268,7 +273,8 @@ if menu == "Dashboard Analítico":
             plt.ylabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Snacking:</b> O maior vilão é comer "Às vezes" (Sometimes) sem planejamento.
+            <b>Análise Comportamental:</b>
+            Note que a maior concentração de obesos não está em quem come "Sempre" (Always), mas na massa que come "Às Vezes" (Sometimes). A falta de rotina alimentar (beliscar sem planejamento) é o maior ofensor calórico oculto.
             </div>""", unsafe_allow_html=True)
 
         with c6:
@@ -279,7 +285,8 @@ if menu == "Dashboard Analítico":
             plt.ylabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Progressão:</b> Confirma acúmulo de peso com a idade.
+            <b>Cronologia da Doença:</b>
+            Observe a mediana (linha preta). Se ela sobe nos níveis mais altos de obesidade, confirma o efeito cumulativo do peso. Outliers jovens em "Obesidade III" são alertas vermelhos para intervenção pediátrica.
             </div>""", unsafe_allow_html=True)
             
         st.markdown("---")
@@ -294,7 +301,7 @@ if menu == "Dashboard Analítico":
             plt.ylabel("Litros/Dia")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Metabolismo:</b> Consumo de água cai nos grupos de risco.
+            <b>Metabolismo:</b> Há uma queda drástica no consumo de água (< 1.5L) nos grupos de risco. Hidratação é essencial para o metabolismo basal.
             </div>""", unsafe_allow_html=True)
 
         with c8:
@@ -307,7 +314,7 @@ if menu == "Dashboard Analítico":
             plt.xlabel("")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Risco:</b> Obesidade + Cigarro multiplica risco cardiovascular.
+            <b>Comorbidade:</b> A combinação Obesidade + Cigarro multiplica exponencialmente o risco cardiovascular (infarto/AVC).
             </div>""", unsafe_allow_html=True)
             
         with c9:
@@ -319,48 +326,76 @@ if menu == "Dashboard Analítico":
             plt.ylabel("Refeições/Dia")
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
-            <b>Rotina:</b> Jejum + compulsão é comum.
+            <b>Padrão Alimentar:</b> Baixa frequência de refeições (1 ou 2) muitas vezes indica jejum prolongado seguido de compulsão.
             </div>""", unsafe_allow_html=True)
     else:
         st.warning("⚠️ Nenhum dado disponível.")
 
-# --- 5. INSIGHTS ---
+# --- 5. INSIGHTS (COM TEXTOS COMPLETOS) ---
 elif menu == "Insights Estratégicos":
-    st.title("Relatório Executivo")
+    st.title("Relatório Executivo de Inteligência de Dados")
     st.markdown("Análise profunda, plano de ação e auditoria técnica do modelo.")
     st.markdown("---")
+
     col_txt1, col_txt2 = st.columns(2)
+
     with col_txt1:
-        st.markdown("### 🔍 Diagnóstico (5 Pilares)")
+        st.markdown("### 🔍 Diagnóstico de Negócio (5 Pilares)")
         st.markdown("""
-        **1. Hereditariedade:** >85% dos casos graves têm histórico familiar positivo.
-        **2. Mobilidade:** Uso de carro correlaciona com alto IMC; transporte ativo protege.
-        **3. Alimentação:** O perigo é comer "Às vezes" entre refeições (falta de rotina).
-        **4. Hidratação:** Obesos bebem <1.5L de água/dia.
-        **5. Tecnologia:** Tempo de tela compete com atividade física.
+        **1. O Fator Hereditário (Genética):**
+        A análise de dados é conclusiva: o histórico familiar é o preditor mais forte de obesidade futura. Em nossa base, mais de **85%** dos casos de Obesidade Grau III possuem parentes diretos com a condição. Isso transforma a obesidade de uma "falha individual" para um "contexto familiar".
+        
+        **2. Mobilidade e Urbanismo:**
+        Identificamos uma correlação quase linear entre o uso de **Automóveis** e o aumento do IMC. Usuários de transporte público (que caminham até pontos/estações) têm índices de obesidade significativamente menores, provando que a "atividade física incidental" é crucial.
+        
+        **3. A 'Zona Cinzenta' da Alimentação:**
+        O perigo não está apenas em quem come "Sempre" entre refeições, mas no grupo "Sometimes" (Às vezes). A falta de rotina alimentar (beliscar sem planejamento) é o maior contribuidor calórico oculto nos dados.
+        
+        **4. Desidratação Crônica:**
+        Pacientes obesos relatam consumo de água sistematicamente menor (< 1.5L) que pacientes saudáveis (> 2.0L). A água atua na saciedade e no metabolismo basal.
+        
+        **5. Sedentarismo Digital (Tech-Neck):**
+        O tempo de uso de tecnologia (TUE) compete diretamente com a atividade física. Pacientes com alto TUE raramente possuem alto FAF (Frequência de Atividade Física), criando um ciclo vicioso.
         """)
+
     with col_txt2:
-        st.markdown("### 🚀 Plano de Ação")
+        st.markdown("### 🚀 Plano de Ação (Propostas)")
         st.success("""
-        **A. Triagem Genética:** Pergunta obrigatória na admissão.
-        **B. Gamificação:** Prêmios por passos.
-        **C. Reeducação:** Lanche programado.
-        **D. Hidratação:** Meta de 2.0L/dia.
+        **A. Protocolo de Triagem Genética na Admissão**
+        * **Ação:** Incluir pergunta obrigatória sobre histórico familiar na triagem.
+        * **Impacto:** Se positivo, o paciente entra em uma "Trilha Preventiva" (nutrição + psicologia) antes mesmo de apresentar sintomas graves.
+        
+        **B. Programa 'Hospital em Movimento'**
+        * **Ação:** Gamificação para funcionários e pacientes.
+        * **Mecânica:** Pontos por passos dados ou troca do carro por bicicleta/transporte público. Prêmios em descontos na farmácia ou dias de folga (para funcionários).
+        
+        **C. Reeducação do 'Belisco'**
+        * **Ação:** Focar a nutrição não em proibir, mas em *estruturar* os lanches intermediários. Substituir o "belisco inconsciente" por "lanche proteico programado".
+        
+        **D. Campanha 'Hidratação 2.0'**
+        * **Ação:** Distribuição de garrafas graduadas inteligentes e instalação de bebedouros com contadores visuais. Meta simples: 2.0L/dia para todos.
         """)
+
     st.markdown("---")
-    st.markdown("### 🤖 Auditoria Técnica do Modelo")
+    
+    # --- AUDITORIA TÉCNICA (COMPLETA) ---
+    st.markdown("### 🤖 Auditoria Técnica do Modelo de IA")
+    
     c_tec1, c_tec2 = st.columns([1, 2])
+    
     with c_tec1:
         st.metric("Acurácia Global", "93.62%", delta="Excelente")
         st.metric("Recall (Obesidade III)", "100.0%", delta="Segurança Máxima")
         st.metric("Precision (Peso Normal)", "94.0%")
+    
     with c_tec2:
         st.markdown("""
         <div class="tech-box">
-        <b>Robustez do Random Forest:</b><br>
-        1. Captura relações não-lineares.<br>
-        2. <b>Recall de 100%</b> em casos graves garante segurança.<br>
-        3. Engenharia de atributos otimizada.
+        <b>Por que este modelo é robusto?</b><br>
+        1. <b>Algoritmo Escolhido:</b> Random Forest Classifier (Floresta Aleatória).<br>
+        2. <b>Justificativa Técnica:</b> Diferente de modelos lineares (como Regressão Logística), o Random Forest consegue capturar <b>relações não-lineares complexas</b>. Exemplo: "Comer vegetais" (FCVC) geralmente é bom, mas o modelo aprendeu que "Comer vegetais + Comer muito entre refeições + Não beber água" ainda resulta em obesidade. Uma regressão simples falharia em ver essa interação.<br>
+        3. <b>Segurança Clínica (Recall):</b> O modelo foi otimizado para não cometer falsos negativos em casos graves. O Recall de 100% na Obesidade Tipo III significa que a IA <b>nunca</b> classificou um paciente mórbido como saudável, garantindo segurança na triagem médica.
+        4. <b>Engenharia de Atributos:</b> A alta performance não é mágica. Ela provém do tratamento prévio dos dados, onde transformamos variáveis categóricas (texto) em numéricas e normalizamos as escalas de idade e peso.
         </div>
         """, unsafe_allow_html=True)
 
@@ -372,6 +407,7 @@ elif menu == "Simulador de Risco":
         with c1: age = st.number_input("Idade", 10, 100, 30)
         with c2: height = st.number_input("Altura (m)", 1.20, 2.50, 1.70)
         with c3: weight = st.number_input("Peso (kg)", 30.0, 200.0, 80.0)
+        
         c4, c5 = st.columns(2)
         with c4: 
             family_history = st.selectbox("Histórico Familiar?", ["Sim", "Não"])
