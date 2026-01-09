@@ -26,30 +26,29 @@ plt.rcParams['axes.labelcolor'] = '#2c3e50'
 plt.rcParams['xtick.color'] = '#2c3e50'
 plt.rcParams['ytick.color'] = '#2c3e50'
 
-# CSS
+# CSS (CORRIGIDO PARA NÃO SUMIR COM TÍTULOS)
 st.markdown("""
     <style>
+    /* Fundo e Cores Gerais */
     [data-testid="stAppViewContainer"] { background-color: #f4f6f9 !important; }
     [data-testid="stSidebar"] { background-color: #ffffff !important; border-right: 1px solid #e1e4e8; }
-    .stMarkdown, .stText, h1, h2, h3, p, li, span { color: #2c3e50 !important; }
-    .css-card {
-        background-color: white !important;
-        padding: 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        margin-bottom: 1rem;
-        color: #2c3e50 !important; 
-    }
-    .css-card * { color: #2c3e50 !important; }
-    .chart-header {
+    
+    /* Força cor escura em todos os textos para leitura */
+    .stMarkdown, .stText, h1, h2, h3, h4, p, li, span, label { color: #2c3e50 !important; }
+    
+    /* Estilo dos Títulos dos Gráficos (Sem sumir) */
+    .custom-header {
         font-family: 'Segoe UI', sans-serif;
         color: #2c3e50 !important;
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         font-weight: 700;
-        margin-bottom: 0.8rem;
+        margin-top: 10px;
+        margin-bottom: 5px;
         border-left: 5px solid #3498db;
         padding-left: 10px;
     }
+    
+    /* Caixas de Insight */
     .insight-box {
         background-color: #eef6fb !important;
         border: 1px solid #d6eaf8;
@@ -57,9 +56,12 @@ st.markdown("""
         border-radius: 8px;
         font-size: 0.90rem;
         color: #2c3e50 !important;
-        margin-top: 10px;
+        margin-top: 5px;
+        margin-bottom: 20px;
         line-height: 1.4;
     }
+
+    /* Destaque Técnico */
     .tech-box {
         background-color: #fff8e1 !important;
         border-left: 5px solid #ffc107;
@@ -68,24 +70,28 @@ st.markdown("""
         color: #5d4037 !important;
         font-size: 0.90rem;
     }
+    
+    /* Métricas */
     div[data-testid="stMetricValue"] { color: #3498db !important; }
     div[data-testid="stMetricLabel"] { color: #7f8c8d !important; }
-    @media (max-width: 768px) {
-        .stColumns { display: block !important; }
-        [data-testid="column"] { width: 100% !important; margin-bottom: 20px; }
-        .css-card { padding: 1rem; }
+    
+    /* Container Branco para os gráficos */
+    [data-testid="column"] {
+        background-color: white;
+        border-radius: 10px;
+        padding: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. DEFINIÇÕES CRÍTICAS (FUNÇÃO DEVE VIR ANTES DO MODELO) ---
+# --- 2. DEFINIÇÕES E FUNÇÕES ---
 
-# ⚠️ ESSA FUNÇÃO É NECESSÁRIA PARA O MODELO FUNCIONAR ⚠️
+# FUNÇÃO QUE FALTAVA (Necessária para o modelo)
 def arredondar_valores(X_in):
     try:
         X_out = X_in.copy()
         cols_to_round = ['FCVC', 'NCP', 'CH2O', 'FAF', 'TUE']
-        # Verifica quais colunas existem no dataframe antes de arredondar
         valid_cols = [c for c in cols_to_round if c in X_out.columns]
         if valid_cols:
             X_out[valid_cols] = X_out[valid_cols].round().astype(int)
@@ -135,7 +141,6 @@ def carregar_modelo():
     for c in caminhos:
         if os.path.exists(c):
             try:
-                # O joblib vai usar a função 'arredondar_valores' definida acima
                 return joblib.load(c)
             except Exception as e:
                 st.error(f"❌ Erro ao carregar '{c}': {e}")
@@ -200,8 +205,7 @@ if menu == "Dashboard Analítico":
 
         c1, c2 = st.columns([2, 1])
         with c1:
-            st.markdown('<div class="css-card">', unsafe_allow_html=True)
-            st.markdown('<div class="chart-header">1. Distribuição Clínica</div>', unsafe_allow_html=True)
+            st.markdown('<p class="custom-header">1. Distribuição Clínica</p>', unsafe_allow_html=True)
             fig, ax = plt.subplots(figsize=(8, 4))
             contagem = df_filtrado['Obesity_PT'].value_counts().reindex(ordem_obesidade).fillna(0)
             colors = ['#2ecc71', '#27ae60', '#f1c40f', '#f39c12', '#e67e22', '#d35400', '#c0392b']
@@ -211,11 +215,10 @@ if menu == "Dashboard Analítico":
             st.pyplot(fig, use_container_width=True)
             st.markdown(f"""<div class="insight-box">
             <b>Insight:</b> O perfil predominante é <b>{contagem.idxmax() if not contagem.empty else 'N/A'}</b>.
-            </div></div>""", unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
 
         with c2:
-            st.markdown('<div class="css-card">', unsafe_allow_html=True)
-            st.markdown('<div class="chart-header">2. Carga Genética</div>', unsafe_allow_html=True)
+            st.markdown('<p class="custom-header">2. Carga Genética</p>', unsafe_allow_html=True)
             fig, ax = plt.subplots()
             fam = df_filtrado['family_history'].value_counts()
             if not fam.empty:
@@ -223,14 +226,13 @@ if menu == "Dashboard Analítico":
                 st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
             <b>Hereditariedade:</b> >80% de histórico positivo em casos graves.
-            </div></div>""", unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
 
         st.markdown("---")
         
         c3, c4 = st.columns(2)
         with c3:
-            st.markdown('<div class="css-card">', unsafe_allow_html=True)
-            st.markdown('<div class="chart-header">3. Mapa de Calor: Transporte</div>', unsafe_allow_html=True)
+            st.markdown('<p class="custom-header">3. Mapa de Calor: Transporte</p>', unsafe_allow_html=True)
             ct = pd.crosstab(df_filtrado['MTRANS'], df_filtrado['Obesity_PT'])
             if not ct.empty:
                 ct_norm = ct.div(ct.sum(axis=1), axis=0)
@@ -241,11 +243,10 @@ if menu == "Dashboard Analítico":
                 st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
             <b>Mobilidade:</b> Vermelho intenso em 'Automobile' indica sedentarismo crítico.
-            </div></div>""", unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
 
         with c4:
-            st.markdown('<div class="css-card">', unsafe_allow_html=True)
-            st.markdown('<div class="chart-header">4. Impacto da Tecnologia</div>', unsafe_allow_html=True)
+            st.markdown('<p class="custom-header">4. Impacto da Tecnologia</p>', unsafe_allow_html=True)
             fig, ax = plt.subplots(figsize=(8, 5))
             sns.violinplot(x='TUE', y='Obesity_PT', data=df_filtrado, order=ordem_obesidade, palette="cool", inner="quartile", ax=ax)
             plt.xlabel("Tempo em Dispositivos")
@@ -253,14 +254,13 @@ if menu == "Dashboard Analítico":
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
             <b>Efeito Tela:</b> Maior uso de telas correlaciona com obesidade mórbida.
-            </div></div>""", unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
 
         st.markdown("---")
 
         c5, c6 = st.columns(2)
         with c5:
-            st.markdown('<div class="css-card">', unsafe_allow_html=True)
-            st.markdown('<div class="chart-header">5. O Mito do "Comer Pouco"</div>', unsafe_allow_html=True)
+            st.markdown('<p class="custom-header">5. O Mito do "Comer Pouco"</p>', unsafe_allow_html=True)
             ct_caec = pd.crosstab(df_filtrado['Obesity_PT'], df_filtrado['CAEC'])
             fig, ax = plt.subplots(figsize=(8, 5))
             sns.heatmap(ct_caec, cmap="Blues", annot=True, fmt="d", cbar=False, ax=ax)
@@ -269,11 +269,10 @@ if menu == "Dashboard Analítico":
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
             <b>Snacking:</b> O maior vilão é comer "Às vezes" (Sometimes) sem planejamento.
-            </div></div>""", unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
 
         with c6:
-            st.markdown('<div class="css-card">', unsafe_allow_html=True)
-            st.markdown('<div class="chart-header">6. Evolução por Idade</div>', unsafe_allow_html=True)
+            st.markdown('<p class="custom-header">6. Evolução por Idade</p>', unsafe_allow_html=True)
             fig, ax = plt.subplots(figsize=(8, 5))
             sns.boxplot(x='Age', y='Obesity_PT', data=df_filtrado, order=ordem_obesidade, palette="Spectral_r", ax=ax)
             plt.xlabel("Idade")
@@ -281,14 +280,13 @@ if menu == "Dashboard Analítico":
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
             <b>Progressão:</b> Confirma acúmulo de peso com a idade.
-            </div></div>""", unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
             
         st.markdown("---")
         
         c7, c8, c9 = st.columns(3)
         with c7:
-            st.markdown('<div class="css-card">', unsafe_allow_html=True)
-            st.markdown('<div class="chart-header">7. Hidratação</div>', unsafe_allow_html=True)
+            st.markdown('<p class="custom-header">7. Hidratação</p>', unsafe_allow_html=True)
             fig, ax = plt.subplots()
             sns.barplot(x='Obesity_PT', y='CH2O', data=df_filtrado, order=ordem_obesidade, palette="Blues", ax=ax, errorbar=None)
             plt.xticks(rotation=90)
@@ -297,11 +295,10 @@ if menu == "Dashboard Analítico":
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
             <b>Metabolismo:</b> Consumo de água cai nos grupos de risco.
-            </div></div>""", unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
 
         with c8:
-            st.markdown('<div class="css-card">', unsafe_allow_html=True)
-            st.markdown('<div class="chart-header">8. Tabagismo</div>', unsafe_allow_html=True)
+            st.markdown('<p class="custom-header">8. Tabagismo</p>', unsafe_allow_html=True)
             smoke_ct = pd.crosstab(df_filtrado['Obesity_PT'], df_filtrado['SMOKE'], normalize='index')
             fig, ax = plt.subplots()
             smoke_ct.plot(kind='bar', stacked=True, color=['#bdc3c7', '#2c3e50'], ax=ax)
@@ -311,11 +308,10 @@ if menu == "Dashboard Analítico":
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
             <b>Risco:</b> Obesidade + Cigarro multiplica risco cardiovascular.
-            </div></div>""", unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
             
         with c9:
-            st.markdown('<div class="css-card">', unsafe_allow_html=True)
-            st.markdown('<div class="chart-header">9. Freq. Refeições</div>', unsafe_allow_html=True)
+            st.markdown('<p class="custom-header">9. Freq. Refeições</p>', unsafe_allow_html=True)
             fig, ax = plt.subplots()
             sns.pointplot(x='Obesity_PT', y='NCP', data=df_filtrado, order=ordem_obesidade, color="#e74c3c", ax=ax)
             plt.xticks(rotation=90)
@@ -324,7 +320,7 @@ if menu == "Dashboard Analítico":
             st.pyplot(fig, use_container_width=True)
             st.markdown("""<div class="insight-box">
             <b>Rotina:</b> Jejum + compulsão é comum.
-            </div></div>""", unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
     else:
         st.warning("⚠️ Nenhum dado disponível.")
 
@@ -335,18 +331,15 @@ elif menu == "Insights Estratégicos":
     st.markdown("---")
     col_txt1, col_txt2 = st.columns(2)
     with col_txt1:
-        st.markdown('<div class="css-card">', unsafe_allow_html=True)
         st.markdown("### 🔍 Diagnóstico (5 Pilares)")
         st.markdown("""
-        **1. Hereditariedade:** >85% dos casos graves têm histórico familiar.
-        **2. Mobilidade:** Uso de carro correlaciona com alto IMC.
-        **3. Alimentação:** Falta de rotina é o maior vilão.
+        **1. Hereditariedade:** >85% dos casos graves têm histórico familiar positivo.
+        **2. Mobilidade:** Uso de carro correlaciona com alto IMC; transporte ativo protege.
+        **3. Alimentação:** O perigo é comer "Às vezes" entre refeições (falta de rotina).
         **4. Hidratação:** Obesos bebem <1.5L de água/dia.
         **5. Tecnologia:** Tempo de tela compete com atividade física.
         """)
-        st.markdown('</div>', unsafe_allow_html=True)
     with col_txt2:
-        st.markdown('<div class="css-card">', unsafe_allow_html=True)
         st.markdown("### 🚀 Plano de Ação")
         st.success("""
         **A. Triagem Genética:** Pergunta obrigatória na admissão.
@@ -354,7 +347,6 @@ elif menu == "Insights Estratégicos":
         **C. Reeducação:** Lanche programado.
         **D. Hidratação:** Meta de 2.0L/dia.
         """)
-        st.markdown('</div>', unsafe_allow_html=True)
     st.markdown("---")
     st.markdown("### 🤖 Auditoria Técnica do Modelo")
     c_tec1, c_tec2 = st.columns([1, 2])
@@ -367,7 +359,7 @@ elif menu == "Insights Estratégicos":
         <div class="tech-box">
         <b>Robustez do Random Forest:</b><br>
         1. Captura relações não-lineares.<br>
-        2. <b>Recall de 100%</b> em casos graves.<br>
+        2. <b>Recall de 100%</b> em casos graves garante segurança.<br>
         3. Engenharia de atributos otimizada.
         </div>
         """, unsafe_allow_html=True)
